@@ -1,23 +1,16 @@
-import './App.css';
-import { useState, useEffect } from 'react';
-import schoolListData from './data/schoolList.json';
+import { Home } from './pages/Home';
+import { Login } from './pages/Login';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 
 function App() {
-  const [schools, setSchools] = useState([]);
-
-  useEffect(() => {
-    setSchools(schoolListData);
-  }, []);
-
   return (
-    <div className="App">
-      <h1>K-Time</h1>
-      <div className = "schoolListContainer">
-        {schools.map(school => (
-          <div key={school.id}>{school.name}</div>
-        ))}
-      </div>
-    </div>
+    <BrowserRouter>
+      <Link to='/login'>LOGIN</Link>
+        <Routes>
+          <Route index element={<Home/>}></Route>
+          <Route path='/login' element={<Login/>}></Route>
+        </Routes>
+      </BrowserRouter>
   );
 }
 
