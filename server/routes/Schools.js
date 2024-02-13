@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { School } = require('../models');
 
-router.get('/', (req, res) => {
-    res.send('Schools');
+router.get('/', async (req, res) => {
+    const schoolList = await School.findAll();
+    res.json(schoolList);
 });
 
 router.post('/', async (req, res) => {

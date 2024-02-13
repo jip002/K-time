@@ -21,6 +21,7 @@ export const CreatePost = () => {
         postBody: Yup.string().required('Body text cannot be empty'),
         postCategory: Yup.string().required('Category cannot be empty')
     })
+    
     return (
       <div className="CreatePostPage">
         <h1>Create Post Page</h1>

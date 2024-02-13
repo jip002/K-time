@@ -2,6 +2,7 @@ module.exports = (sequelize, DataTypes) => {
     const Comment = sequelize.define("Comment", {
         commenter: {
             type: DataTypes.STRING,
+            defaultValue: 'Anonymous User',
             allowNull: false,
         },
         text: {
