@@ -17,7 +17,7 @@ const credentials = new AWS.Credentials({
 AWS.config.credentials = credentials;
 
 // Create a DynamoDB client
-const dynamodb = new AWS.DynamoDB();
+const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 // Name of your DynamoDB table
 const tableName = 'User';
@@ -28,6 +28,30 @@ const scanParams = {
 };
 
 
+
+// ***************************************************
+
+// For Chat Table
+const params = {
+  TableName: 'Chat',
+  FilterExpression: 'cpid = :partitionKey',
+  ExpressionAttributeValues: {
+    ':partitionKey': 'a' // Replace 'a' with the partition key value you want to scan for
+  }
+};
+
+dynamodb.scan(params, (err, data) => {
+  if (err) {
+    console.error('Unable to scan table:', err);
+  } else {
+    console.log('Scan succeeded:', data);
+    console.log(data.Items[0].msgContent)
+    // Process the scanned items here
+  }
+});
+
+
+// NOTE For User Table
 // ***************************************************
 
 
@@ -125,19 +149,19 @@ const scanParams = {
 
 
 // retrieves a single item from the table based on its primary key (combination of partition & sort key)
-const getParams = {
-  TableName: tableName,
-  Key: {
-    'school': { S: 'ucsd' }, // Primary key attribute name and value
-    'uid': { N: '0' } // Sort key attribute name and value
-  },
-};
+// const getParams = {
+//   TableName: tableName,
+//   Key: {
+//     'school': { S: 'ucsd' }, // Primary key attribute name and value
+//     'uid': { N: '0' } // Sort key attribute name and value
+//   },
+// };
 
 
-dynamodb.getItem(getParams, (err, data) => {
-  if (err) {
-    console.error('Unable to get item from the table. Error JSON:', JSON.stringify(err, null, 2));
-  } else {
-    console.log('Item retrieved successfully:', JSON.stringify(data.Item, null, 2));
-  }
-});
+// dynamodb.getItem(getParams, (err, data) => {
+//   if (err) {
+//     console.error('Unable to get item from the table. Error JSON:', JSON.stringify(err, null, 2));
+//   } else {
+//     console.log('Item retrieved successfully:', JSON.stringify(data.Item, null, 2));
+//   }
+// });
