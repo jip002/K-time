@@ -10,10 +10,12 @@ function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <Link to='/'> Home Page </Link><br/>
-        <Link to='/login'> Login </Link><br/>
-        <Link to='/createpost'> Create Post </Link><br/>
-        <Link to='/forum'> Forum </Link>
+        <div className = 'navbar'>
+          <Link to='/'> HOME PAGE </Link><br/>
+          <Link to='/login'> LOGIN </Link><br/>
+          <Link to='/createpost'> CREATE POST </Link><br/>
+          <Link to='/forum'> FORUM </Link>
+        </div>
         <Routes>
           <Route index element={<Home/>}></Route>
           <Route path='/login' element={<Login/>}></Route>

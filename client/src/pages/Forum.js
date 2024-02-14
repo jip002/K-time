@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import '../styles/Forum.css';
 
 export const Forum = () => {
   const [posts, setPosts] = useState([]);

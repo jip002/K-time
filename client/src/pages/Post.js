@@ -2,30 +2,27 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
+import '../styles/Post.css';
 import axios from 'axios';
 
 export const Post = () => {
     let { id } = useParams()
     const [post, setPost] = useState({});
     const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState({});
 
-    const initialValues = {
-        commenter: '',
-        text: '',
-        PostId: 0
-    }
-
-    const onSubmit = (data) => {
-        axios.post('http://localhost:3001/comments', data).then((res) => {
+    const addComment = () => {
+        const addedComment = {
+            commenter: 'Anonymous User',
+            text: newComment,
+            PostId: id
+        };
+        axios.post('http://localhost:3001/comments', addedComment).then((res) => {
             console.log("Comment uploaded");
+            setComments([...comments, addedComment]);
+            setNewComment('');
         })
     }
-
-    const validationSchema = Yup.object().shape({
-        text: Yup.string().max(300).required('Comment cannot be empty'),
-    })
 
     useEffect(() => {
         axios.get(`http://localhost:3001/posts/${id}`)
@@ -45,34 +42,32 @@ export const Post = () => {
       <div className="PostPage">
         <div className='postContainer'>
             <div>{post.postTitle}</div>
-            <div>{post.postBody}</div>
+            <div className = 'postBody'>{post.postBody}</div>
             <div>{post.postCategory}</div>
             <div>{post.postAuthor}</div>
             <div>{post.numLike}</div>
         </div>
-        <div className='commentContainer'>
-            {comments.map(comment => (
-            <div key={comment.id} className="comment">
-                {comment.text}
-                <div key={comment.id} className="commenter">
-                {comment.commenter}
+        <div className='commentsContainer'>
+            {comments.map((comment, key) => (
+            <div key = {key} className='commentForm'>
+                <div className="comment">
+                    {comment.text}
+                </div>
+                <div className="commenter">
+                    {comment.commenter}
                 </div>
             </div>
             ))}
         </div>
-        <div className='commentFormikContainer'>
-            <Formik>
-            <Form className = 'commentFormContainer'>
-                <label>Create a comment</label><br/>
-                <Field 
-                id = 'inputCreateCommenet' 
-                name='commentText' 
-                placeholder='comment...'
-                />
-                <br/><ErrorMessage name ='commentText'component = 'span'/><br/>
-                <button type = 'submit'>Post Comment</button>
-            </Form>
-        </Formik>
+        <div className='newCommentContainer'>
+            <input 
+                type='text' 
+                placeholder='comment...' 
+                value = {newComment}
+                autoComplete='off' 
+                onChange={ (event) => { setNewComment(event.target.value) }}
+            />
+            <button onClick = {addComment}>Add Comment</button>
         </div>
       </div>
     );

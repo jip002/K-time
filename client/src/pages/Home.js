@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import '../styles/Home.css';
 
 export const Home = () => {
   const [schools, setSchools] = useState([]);
-
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios.get('http://localhost:3001/schools')
@@ -19,7 +21,7 @@ export const Home = () => {
         <div className = "school">
         {
           schools.map(school => (
-            <div key={school.id}>{school.schoolName}</div>
+            <div onClick = {() => { navigate('/forum') }} key={school.id}>{school.schoolName}</div>
           ))
         }
         </div>

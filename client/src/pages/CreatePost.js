@@ -1,9 +1,12 @@
 import React from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import * as Yup from 'yup';
-//initialValues={} onSubmit={} validationSchema={}
+import '../styles/CreatePost.css';
+
 export const CreatePost = () => {
+    const navigate = useNavigate();
     const initialValues = {
         postTitle: '',
         postBody: '',
@@ -13,6 +16,7 @@ export const CreatePost = () => {
     const onSubmit = (data) => {
         axios.post('http://localhost:3001/posts', data).then((res) => {
             console.log("Post uploaded");
+            navigate('/forum');
         })
     }
 
@@ -21,7 +25,7 @@ export const CreatePost = () => {
         postBody: Yup.string().required('Body text cannot be empty'),
         postCategory: Yup.string().required('Category cannot be empty')
     })
-    
+
     return (
       <div className="CreatePostPage">
         <h1>Create Post Page</h1>
@@ -40,6 +44,7 @@ export const CreatePost = () => {
                 <br/><ErrorMessage name ='postTitle'component = 'span'/><br/>
                 <label>Body: </label><br/>
                 <Field 
+                as='textarea'
                 id = 'inputCreatePost' 
                 name='postBody' 
                 placeholder='Put body text here...'
@@ -58,3 +63,4 @@ export const CreatePost = () => {
       </div>
     );
   }
+
