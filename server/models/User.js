@@ -1,21 +1,54 @@
-module.exports = (sequelize, DataTypes) => {
-    const User = sequelize.define("User", {
-        nickname: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        password: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        email: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        school: {
-            type: DataTypes.STRING,
-            allowNull: true
+// module.exports = (sequelize, DataTypes) => {
+//     const User = sequelize.define("User", {
+//         nickname: {
+//             type: DataTypes.STRING,
+//             allowNull: false,
+//         },
+//         password: {
+//             type: DataTypes.STRING,
+//             allowNull: false,
+//         },
+//         email: {
+//             type: DataTypes.STRING,
+//             allowNull: false,
+//         },
+//         school: {
+//             type: DataTypes.STRING,
+//             allowNull: true
+//         }
+//     });
+//     return User;
+// }
+
+// Define the Post model for DynamoDB
+const User = (dynamodb, AWS) => {
+    const tableName = 'User'
+    return {
+        create: async (user) => {
+            const params = {
+                TableName: User.tableName,
+                Item: {
+                    school: post.school,
+                    uid: post.uid,
+                    background: post.background,
+                    email: post.email,
+                    emailNotification: post.emailNotification,
+                    font: post.font,
+                    interactions: post.interactions,
+                    nickname: post.nickname,
+                    password: post.password,
+                }
+            };
+            try {
+                await dynamodb.put(params).promise();
+                return params.Item;
+            } catch (error) {
+                console.error('Error creating user:', error);
+                throw error;
+            }
         }
-    });
-    return User;
-}
+        // You can add more methods for updating, querying, deleting, etc., as needed
+    }
+};
+
+module.exports = User;

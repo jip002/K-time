@@ -2,19 +2,27 @@
 
 const fs = require('fs');
 const path = require('path');
-const Sequelize = require('sequelize');
+const AWS = require('aws-sdk');
 const process = require('process');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const config = require(__dirname + '/../config/.config');
 const db = {};
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
+// Set the AWS region
+AWS.config.update({ region: 'us-west-1' });
+
+// Set your AWS credentials
+const credentials = new AWS.Credentials({
+  accessKeyId: config.accessKeyId,
+  secretAccessKey: config.secretAccessKey,
+});
+
+// Assign the credentials to the AWS configuration
+AWS.config.credentials = credentials;
+
+// Create a DynamoDB client
+const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 fs
   .readdirSync(__dirname)
@@ -27,7 +35,7 @@ fs
     );
   })
   .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    const model = require(path.join(__dirname, file))(dynamodb, AWS); // Pass DynamoDB instance to models
     db[model.name] = model;
   });
 
@@ -37,7 +45,6 @@ Object.keys(db).forEach(modelName => {
   }
 });
 
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
+db.dynamodb = dynamodb; // Add DynamoDB instance to exported object
 
 module.exports = db;

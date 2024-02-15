@@ -1,0 +1,19 @@
+[
+    {
+      "id": 1,
+      "name": "UCSD"
+      
+    },
+    {
+      "id": 2,
+      "name": "UCLA"
+    },
+    {
+        "id": 3,
+        "name": "UCB"
+    },
+    {
+        "id": 4,
+        "name": "UCSB"
+    }
+]

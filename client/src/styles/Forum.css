@@ -1,0 +1,42 @@
+/* General styling for the Forum page */
+.Forum {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #f0f8ff; /* Light azure background for contrast */
+    min-height: 100vh;
+  }
+  
+  .Forum h1 {
+    color: #003366; /* Navy blue for the heading */
+    margin-bottom: 20px;
+  }
+  
+  /* Styling for the container of the post list */
+  .postListContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Space between posts */
+  }
+  
+  /* Styling for individual posts */
+  .post {
+    background-color: #ffffff; /* White background for the posts */
+    border-left: 5px solid #ffed29;; /* Navy accent on the left */
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+  }
+  
+  .post:hover {
+    background-color: #eef2f7; /* Lighter shade on hover */
+    transform: translateX(5px); /* Slight move to the right on hover */
+  }
+  
+  /* Ensures the titles are lined to the left */
+  .post {
+    text-align: left;
+    font-size: 16px;
+    color: #003366; /* Navy text for readability */
+    font-weight: bold;
+  }
+  
