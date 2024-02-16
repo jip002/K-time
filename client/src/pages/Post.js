@@ -6,16 +6,18 @@ import '../styles/Post.css';
 import axios from 'axios';
 
 export const Post = () => {
-    let { id } = useParams()
+    const { id } = useParams(); // Get the encoded params from the URL   TODO can I change the var name?
+    const { postCategory, pid } = JSON.parse(id);
     const [post, setPost] = useState({});
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState({});
 
     const addComment = () => {
         const addedComment = {
-            commenter: 'Anonymous User',
-            text: newComment,
-            PostId: id
+            nickname: 'Anonymous User',
+            body: newComment,
+            PostId: pid,
+            postCategory: postCategory
         };
         axios.post('http://localhost:3001/comments', addedComment).then((res) => {
             console.log("Comment uploaded");
@@ -25,18 +27,15 @@ export const Post = () => {
     }
 
     useEffect(() => {
-        axios.get(`http://localhost:3001/posts/${id}`)
+        const params = encodeURIComponent(JSON.stringify({ postCategory, pid }));
+        axios.get(`http://localhost:3001/posts/${params}`)
         .then((response)=>{
           setPost(response.data);
-          // console.log(response.data);
-        });
+        })
 
-        axios.get(`http://localhost:3001/comments/byPost/${id}`)
+        axios.get(`http://localhost:3001/comments/byPost/${params}`)
         .then((response)=>{
-          // console.log(response.data);
-          // TODO make sure response.data is a list
-          // TODO comment.commenter : store nickname?
-          setComments([response.data]);
+          setComments(response.data);
         });
 
       }, []);
@@ -44,11 +43,11 @@ export const Post = () => {
     return (
       <div className="PostPage">
         <div className='postContainer'>
-            <div>{post.postTitle}</div>
-            <div className = 'postBody'>{post.postBody}</div>
-            <div>{post.postCategory}</div>
-            <div>{post.postAuthor}</div>
-            <div>{post.numLike}</div>
+            <div>{post.title}</div>
+            <div className = 'postBody'>{post.body}</div>
+            <div>{post.postType}</div>
+            <div>{post.author}</div>
+            <div>{post.numLikes}</div>
         </div>
         <div className='commentsContainer'>
             {comments.map((comment, key) => (
@@ -57,7 +56,7 @@ export const Post = () => {
                     {comment.body}
                 </div>
                 <div className="commenter">
-                    {comment.commenter}
+                    {comment.nickname}
                 </div>
             </div>
             ))}

@@ -12,16 +12,22 @@ router.get('/', async (req, res) => {
     };
     dynamodb.scan(params, (err, data) => {
         if (err) {
-        console.error('Unable to scan table:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
+            console.error('Unable to scan table:', err);
+            res.status(500).json({ error: 'Internal Server Error' });
         } else {
-        res.json(data.Items);
+            // Sort the items by postDate
+            const sortedItems = data.Items.sort((a, b) => {
+                return new Date(b.postDate) - new Date(a.postDate);
+            });
+            res.json(sortedItems);
         }
     });
 });
 
 router.post('/', async (req, res) => {
     const post = req.body;
+
+    // Getting the date value
     const date = new Date();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -32,94 +38,100 @@ router.post('/', async (req, res) => {
     const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
     const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}:${milliseconds}`;
 
-    const itemParams = {
+    // Getting the max pid for a specified postCategory
+    const params = {
         TableName: 'Post',
-        Item: {
-          // Define the attributes of the item
-          'postType': post.postCategory,
-          'postDate': formattedDate,
-
-          'author': 0,  // TODO 추후에 바꿔야 함
-          'body': post.postBody,
-          'isDeleted': false,
-          'isEdited': false,
-          'likers': [],
-          'numLikes': 0,
-          'pid': 1,  // TODO increment (after getting max, needs to be unique)
-          'school': 'ucsd',  // TODO user별
-          'title': post.postTitle,
+        KeyConditionExpression: 'postCategory = :postCategory',
+        ExpressionAttributeValues: {
+            ':postCategory': post.postCategory
         },
-      };
-
-    // Add the item to the table
-    dynamodb.put(itemParams, (err, data) => {
+        ProjectionExpression: 'pid', 
+        ScanIndexForward: false,
+        Limit: 1
+    };
+    
+    const queryCallback = (err, data) => {
         if (err) {
-          console.error('Unable to add item to the table. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log('Item added successfully:', JSON.stringify(data, null, 2));
+            console.error('Unable to query table:', err);
+            return;
         }
-    });
+
+        let lastPid;
+        if (data.Items.length === 0) {
+            res.status(404).json({ error: 'No items found for the specified postCategory.' });
+            lastPid = -1;
+        } else {
+            lastPid = data.Items[0].pid;
+        }
+
+        // Increment the last pid value to get the next highest value
+        const nextPid = lastPid + 1;
+
+        // itemParams for the new Post
+        const itemParams = {
+            TableName: 'Post',
+            Item: {
+                // Define the attributes of the item
+                'postCategory': post.postCategory,
+                'pid': nextPid,
+
+                'author': 'testNickname',  // TODO 추후에 바꿔야 함
+                'body': post.postBody,
+                'postDate': formattedDate,
+                'isDeleted': false,
+                'isEdited': false,
+                'likers': [],
+                'numLikes': 0,
+                'school': 'ucsd',  // TODO user별
+                'title': post.postTitle,
+                'viewCount': 0,
+            },
+        };
+
+        dynamodb.put(itemParams, (err, data) => {
+            if (err) {
+              console.error('Unable to add item to the table. Error JSON:', JSON.stringify(err, null, 2));
+            } else {
+              console.log('Item added successfully:', JSON.stringify(data, null, 2));
+            }
+        });
+    };
+
+    dynamodb.query(params, queryCallback);
 });
 
 
-
-router.get('/:id', async (req, res) => {
-    // const id = req.params.id;
-    // // const post = await Post.findByPk(id);
-    // // res.json(post);
-    // const params = {
-    //     TableName: 'Post',
-    //     KeyConditionExpression: 'pid = :pid AND postType = :postType', // Adding postType condition
-    //     ExpressionAttributeValues: {
-    //         ':pid': id,
-    //         ':postType': '테스트' // Adding postType value
-    //     }
-    // };
-
-    // dynamodb.query(params, (err, data) => {
-    //     if (err) {
-    //         console.error('Unable to query post by pid and postType:', err);
-    //         res.status(500).json({ error: 'Unable to query post.' });
-    //     } else {
-    //         if (data.Items.length === 0) {
-    //             res.status(404).json({ error: 'Post not found.' });
-    //         } else {
-    //             const post = data.Items[0];
-    //             res.json(post);
-    //         }
-    //     }
-    // });
-
-
-    // const postType = req.params.postType;
-    const postType = '테스트';
-    // const pid = parseInt(req.params.id);
-    const pid = 0;
-
+router.get('/:params', async (req, res) => {
+    const { postCategory, pid } = JSON.parse(req.params.params); // Decode parameters
     const params = {
         TableName: 'Post',
-        FilterExpression: 'postType = :postType AND pid = :pid',
+        KeyConditionExpression: 'postCategory = :postCategory AND pid = :pid',
         ExpressionAttributeValues: {
-            ':postType': postType,
+            ':postCategory': postCategory,
             ':pid': pid
         }
     };
 
-    dynamodb.scan(params, (err, data) => {
+    dynamodb.query(params, (err, data) => {
         if (err) {
-            console.error('Unable to scan post by postType and pid:', err);
+            console.error('Unable to scan post by postCategory and pid:', err);
             res.status(500).json({ error: 'Unable to scan post.' });
         } else {
             if (data.Items.length === 0) {
                 res.status(404).json({ error: 'Post not found.' });
             } else {
-                const posts = data.Items;
-                res.json(posts);
+                const post = data.Items[0];
+                res.json(post);
             }
         }
     });
 });
 
+
+// TODO get post filtered by postCategory
+
+
+// TODO
 // router.delete('/:id', async (req, res) => {
 //     const postId = req.params.id;
 //     Post.destroy({

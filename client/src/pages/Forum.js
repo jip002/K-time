@@ -6,7 +6,6 @@ import '../styles/Forum.css';
 export const Forum = () => {
   const [posts, setPosts] = useState([]);
   let navigate = useNavigate();
-
   useEffect(() => {
     axios.get('http://localhost:3001/posts')
     .then((response)=>{
@@ -14,14 +13,18 @@ export const Forum = () => {
     })
   }, []);
 
+  const handleClick = (postCategory, pid) => {
+    const params = encodeURIComponent(JSON.stringify({ postCategory, pid })); // Encode parameters
+    navigate(`/post/${params}`);
+  };
+
   return (
     <div className="Forum">
       <h1>UCSD Forum</h1>
       <div className="postListContainer">
         {posts.map(post => (
-          <div key={post.id} className="post" onClick={() => navigate(`/post/${post.id}`)} style={{ cursor: 'pointer' }}>
+          <div key={`${post.postCategory}-${post.pid}`} className="post" onClick={() => handleClick(post.postCategory, post.pid)} style={{ cursor: 'pointer' }}>
             {post.title}
-            {/* TODO postTitle --> title */}
           </div>
         ))}
       </div>

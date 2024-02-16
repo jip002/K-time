@@ -1,41 +1,3 @@
-// module.exports = (sequelize, DataTypes) => {
-//     const Post = sequelize.define("Post", {
-//         postTitle: {
-//             type: DataTypes.STRING,
-//             allowNull: false,
-//         },
-//         postBody: {
-//             type: DataTypes.STRING,
-//             allowNull: false,
-//         },
-//         postCategory: {
-//             type: DataTypes.STRING,
-//             allowNull: false,
-//         },
-//         editDate: {
-//             type: DataTypes.STRING,
-//             allowNull: true
-//         },
-//         postAuthor: {
-//             type: DataTypes.STRING,
-//             defaultValue: 'Anonymous User',
-//             allowNull: false
-//         },
-//         numLike: {
-//             type: DataTypes.INTEGER,
-//             defaultValue: 0,
-//             allowNull: false,
-//         },
-//     });
-//     Post.associate = (models) => {
-//         Post.hasMany(models.Comment, {
-//             onDelete: "cascade"
-//         });
-//     };
-//     return Post;
-// }
-
-
 // Define the Post model for DynamoDB
 const Post = (dynamodb, AWS) => {
     const tableName = 'Post'; // Define the DynamoDB table name
@@ -44,7 +6,7 @@ const Post = (dynamodb, AWS) => {
             const params = {
                 TableName: Post.tableName,
                 Item: {
-                    postType: post.postType,
+                    postCategory: post.postCategory,
                     postDate: post.postDate,
                     author: post.author,
                     body: post.body,
@@ -54,7 +16,8 @@ const Post = (dynamodb, AWS) => {
                     numLikes: post.numLikes,
                     pid: post.pid,
                     school: post.school,
-                    title: post.title
+                    title: post.title,
+                    viewCount: post.viewCount,
                 }
             };
             try {
