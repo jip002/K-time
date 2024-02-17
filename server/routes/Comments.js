@@ -13,7 +13,7 @@ router.post('/', validateToken, async (req, res) => {
     //if(comment.commenter == '') comment.commenter = 'Anonymous User';
     comment.commenter = req.user.nickname;
     const newComment = await Comment.create(comment);
-    res.json(req.user.nickname);
+    res.json({nickname: req.user.nickname, commentId: newComment.id});
 });
 
 router.get('/:id', async (req, res) => {

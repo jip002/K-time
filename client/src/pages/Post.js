@@ -25,10 +25,10 @@ export const Post = () => {
         }}).then((res) => {
           if(res.data.error) alert(res.data.error);
           else {
-            addedComment.commenter = res.data;
+            addedComment.commenter = res.data.nickname;
+            addedComment.id = res.data.commentId;
             setComments([...comments, addedComment]);
             setNewComment('');
-            console.log(res.data);
           }
         })
     };
@@ -53,6 +53,7 @@ export const Post = () => {
         axios.get(`http://localhost:3001/comments/byPost/${id}`)
         .then((response)=>{
           setComments(response.data);
+          //console.log(response.data);
         });
 
         setNewComment('');
