@@ -1,7 +1,8 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../helpers/AuthContext';
 import '../styles/Post.css';
 import axios from 'axios';
 
@@ -10,6 +11,7 @@ export const Post = () => {
     const [post, setPost] = useState({});
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState({});
+    const {authState} = useContext(AuthContext);
 
     const addComment = () => {
         const addedComment = {
@@ -17,12 +19,29 @@ export const Post = () => {
             text: newComment,
             PostId: id
         };
-        axios.post('http://localhost:3001/comments', addedComment).then((res) => {
-            console.log("Comment uploaded");
+        console.log(addedComment);
+        axios.post('http://localhost:3001/comments', addedComment, {headers: {
+          accessToken: sessionStorage.getItem('accessToken')
+        }}).then((res) => {
+          if(res.data.error) alert(res.data.error);
+          else {
+            addedComment.commenter = res.data;
             setComments([...comments, addedComment]);
             setNewComment('');
+            console.log(res.data);
+          }
         })
-    }
+    };
+
+    const deleteComment = (id) => {
+      axios.delete(`http://localhost:3001/comments/${id}`, {
+        headers: { accessToken: sessionStorage.getItem('accessToken')}
+      }).then(()=> {
+        setComments(comments.filter((comment) => {
+          return comment.id != id;
+        }))
+      });
+    };
 
     useEffect(() => {
         axios.get(`http://localhost:3001/posts/${id}`)
@@ -35,6 +54,8 @@ export const Post = () => {
         .then((response)=>{
           setComments(response.data);
         });
+
+        setNewComment('');
 
       }, []);
     
@@ -56,9 +77,12 @@ export const Post = () => {
                 <div className="commenter">
                     {comment.commenter}
                 </div>
+                {authState.nickname === comment.commenter && 
+                <button onClick={() => {deleteComment(comment.id)}}>X</button>}
             </div>
             ))}
         </div>
+
         <div className='newCommentContainer'>
             <input 
                 type='text' 

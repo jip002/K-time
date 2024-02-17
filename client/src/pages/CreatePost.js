@@ -14,8 +14,10 @@ export const CreatePost = () => {
     }
 
     const onSubmit = (data) => {
-        axios.post('http://localhost:3001/posts', data).then((res) => {
-            console.log("Post uploaded");
+        axios.post('http://localhost:3001/posts', data, {headers: {
+            accessToken: sessionStorage.getItem('accessToken')
+          }}).then((res) => {
+            console.log(res.data);
             navigate('/forum');
         })
     }

@@ -8,20 +8,18 @@ app.use(cors());
 app.use(express.json());
 
 const schoolsRouter = require('./routes/Schools');
-const userRouter = require('./routes/Users');
-const postRouter = require('./routes/Posts');
-const commentRouter = require('./routes/Comments');
-const subcommentRouter = require('./routes/Subcomments');
+const usersRouter = require('./routes/Users');
+const postsRouter = require('./routes/Posts');
+const commentsRouter = require('./routes/Comments');
+const subcommentsRouter = require('./routes/Subcomments');
+const postLikesRouter = require('./routes/PostLikes');
 
 app.use('/schools', schoolsRouter);
-app.use('/users', userRouter);
-app.use('/posts', postRouter);
-app.use('/comments', commentRouter);
-app.use('/subcomments', subcommentRouter);
-
-app.get('/', (req,res) => {
-    res.send("Hello World");
-})
+app.use('/auth', usersRouter);
+app.use('/posts', postsRouter);
+app.use('/comments', commentsRouter);
+app.use('/subcomments', subcommentsRouter);
+app.use('/postlikes', postLikesRouter);
 
 db.sequelize.sync().then(() => {
     app.listen(3001, () => {

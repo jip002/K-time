@@ -1,17 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const {Comment} = require('../models');
+const { validateToken } = require('../middlewares/AuthMiddleware');
 
 router.get('/', async (req, res) => {
     const commentList = await Comment.findAll();
     res.json(commentList);
 });
 
-router.post('/', async (req, res) => {
+router.post('/', validateToken, async (req, res) => {
     const comment = req.body;
-    if(comment.commenter == '') comment.commenter = 'Anonymous User';
+    //if(comment.commenter == '') comment.commenter = 'Anonymous User';
+    comment.commenter = req.user.nickname;
     const newComment = await Comment.create(comment);
-    res.json(newComment.text);
+    res.json(req.user.nickname);
 });
 
 router.get('/:id', async (req, res) => {
@@ -32,13 +34,9 @@ router.get('/byPost/:postId', async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', validateToken, async (req, res) => {
     const commentId = req.params.id;
-    Comment.destroy({
-        where: {
-            id: commentId
-        }
-    });
+    await Comment.destroy({ where: { id: commentId }});
     res.json(`${commentId} deleted from the database`);
 });
 

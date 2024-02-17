@@ -19,9 +19,12 @@ export const Forum = () => {
       <h1>UCSD Forum</h1>
       <div className="postListContainer">
         {posts.map(post => (
-          <div key={post.id} className="post" onClick={() => navigate(`/post/${post.id}`)} style={{ cursor: 'pointer' }}>
+          <>
+            <div key={post.id} className="post" onClick={() => navigate(`/post/${post.id}`)} style={{ cursor: 'pointer' }}>
             {post.postTitle}
-          </div>
+            <div>{`♥ ${post.PostLikes.length}`}</div>
+            </div>
+          </>
         ))}
       </div>
     </div>

@@ -1,15 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const {Post} = require('../models');
+const { Post, PostLike } = require('../models');
+const { validateToken } = require('../middlewares/AuthMiddleware');
 
 router.get('/', async (req, res) => {
-    const postList = await Post.findAll();
+    const postList = await Post.findAll({ include: [PostLike]});
     res.json(postList);
 });
 
-router.post('/', async (req, res) => {
+router.post('/', validateToken, async (req, res) => {
     const post = req.body;
-    console.log(post);
+    post.postAuthor = req.user.nickname;
     const newPost = await Post.create(post);
     res.json(newPost.id);
 });
