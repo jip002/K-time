@@ -1,0 +1,72 @@
+/* Overall page styling */
+.CreatePostPage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    background-color: #f0f8ff; /* Light azure for contrast with navy elements */
+    min-height: 100vh;
+  }
+  
+  /* Heading style */
+  h1 {
+    color: #004175; /* Deeper navy for prominence */
+    margin-bottom: 30px;
+  }
+  
+  /* Form container */
+  .formContainer {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(0, 65, 117, 0.2);
+    padding: 30px;
+    width: 90%;
+    max-width: 600px;
+  }
+  
+  /* Labels */
+  .formContainer label {
+    color: #004175;
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  
+  /* Input and Textarea fields */
+  .formContainer Field, .formContainer textarea {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 8px 0 20px;
+    border: 2px solid #004175;
+    border-radius: 5px;
+    box-sizing: border-box; /* Ensures padding does not affect overall width */
+  }
+  
+  .formContainer textarea {
+    height: 120px; /* Provides more space for body content */
+    resize: none; /* Disables resizing to maintain the form's aesthetic */
+  }
+  
+  /* Submit Button */
+  .formContainer button {
+    background-color: #007bff; /* A vibrant shade for the button */
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s;
+  }
+  
+  .formContainer button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+  }
+  
+  /* Error Message */
+  .ErrorMessage {
+    color: #ff3860; /* Vibrant red for error messages */
+    margin: -15px 0 10px;
+    font-size: 0.9em;
+  }
+  
