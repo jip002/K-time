@@ -5,11 +5,8 @@ const {Comment} = require('../models');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-router.get('/', async (req, res) => {
-    const commentList = await Comment.findAll();
-    res.json(commentList);
-});
 
+// Create comment from a post
 router.post('/', async (req, res) => {
     const comment = req.body;
 
@@ -81,21 +78,25 @@ router.post('/', async (req, res) => {
 });
 
 
+// Get all comments from a post
 router.get('/byPost/:params', async (req, res) => {
     const { postCategory, pid } = JSON.parse(req.params.params); // Decode parameters
 
     const params = {
         TableName: 'Comment',
-        FilterExpression: 'postCategory = :postCategory AND postId = :postId',
+        KeyConditionExpression: 'postCategory = :postCategory',
+        FilterExpression: 'postId = :postId AND isDeleted = :deleted',
         ExpressionAttributeValues: {
             ':postCategory': postCategory,
-            ':postId': pid
+            ':postId': pid,
+            ':deleted': false,
         }
     };
-    // NOTE might not be the best idea to use scan
-    dynamodb.scan(params, (err, data) => {
+
+    dynamodb.query(params, (err, data) => {
         if (err) {
-            console.error('Unable to scan the table:', err);
+            console.error('Unable to query the table:', err);
+            res.status(500).json({ error: 'Internal Server Error' });
         } else {
             res.json(data.Items);
         }
@@ -103,15 +104,39 @@ router.get('/byPost/:params', async (req, res) => {
 });
 
 
-// TODO need to set what to pass in params (postCategory, commentId)
+// NOTE need to pass in params (postCategory, commentId)
+// Deleting a comment (changing isDeleted value to true)
+// TODO need to check if req user and comment user matches
 router.delete('/:params', async (req, res) => {
-    const commentId = req.params.id;
-    Comment.destroy({
-        where: {
-            id: commentId
+    const { postCategory, commentId } = JSON.parse(req.params.params);
+
+    const params = {
+        TableName: 'Comment',
+        Key: {
+            'postCategory': postCategory,
+            'commentId': commentId
+        },
+        UpdateExpression: 'SET isDeleted = :deleted',
+        ExpressionAttributeValues: {
+            ':deleted': true
+        },
+        ReturnValues: 'ALL_NEW'
+    };
+
+    dynamodb.update(params, (err, data) => {
+        if (err) {
+            console.error('Error updating post:', err);
+            res.status(500).json({ error: 'Error updating post.' });
+        } else {
+            res.json({ message: 'Comment deleted successfully.' });
         }
     });
-    res.json(`${commentId} deleted from the database`);
 });
+
+
+// User likes a comment
+
+
+// TODO User edits a comment
 
 module.exports = router;

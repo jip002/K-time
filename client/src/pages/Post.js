@@ -48,6 +48,7 @@ export const Post = () => {
             <div>{post.postType}</div>
             <div>{post.author}</div>
             <div>{post.numLikes}</div>
+            <div>{post.viewCount}</div>
         </div>
         <div className='commentsContainer'>
             {comments.map((comment, key) => (
