@@ -1,20 +1,20 @@
-// Define the Post model for DynamoDB
+// Define the User model for DynamoDB
 const User = (dynamodb, AWS) => {
     const tableName = 'User'
     return {
         create: async (user) => {
             const params = {
-                TableName: User.tableName,
+                TableName: tableName,
                 Item: {
-                    school: post.school,
-                    uid: post.uid,
-                    background: post.background,
-                    email: post.email,
-                    emailNotification: post.emailNotification,
-                    font: post.font,
-                    interactions: post.interactions,
-                    nickname: post.nickname,
-                    password: post.password,
+                    school: user.school,
+                    uid: user.uid,
+                    background: user.background,
+                    email: user.email,
+                    emailNotification: user.emailNotification,
+                    font: user.font,
+                    interactions: user.interactions,
+                    nickname: user.nickname,
+                    password: user.password,
                 }
             };
             try {

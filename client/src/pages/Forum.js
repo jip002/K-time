@@ -6,6 +6,7 @@ import '../styles/Forum.css';
 export const Forum = () => {
   const [posts, setPosts] = useState([]);
   let navigate = useNavigate();
+
   useEffect(() => {
     axios.get('http://localhost:3001/posts')
     .then((response)=>{
@@ -23,9 +24,12 @@ export const Forum = () => {
       <h1>UCSD Forum</h1>
       <div className="postListContainer">
         {posts.map(post => (
-          <div key={`${post.postCategory}-${post.pid}`} className="post" onClick={() => handleClick(post.postCategory, post.pid)} style={{ cursor: 'pointer' }}>
+          <>
+            <div key={`${post.postCategory}-${post.pid}`} className="post" onClick={() => handleClick(post.postCategory, post.pid)} style={{ cursor: 'pointer' }}>
             {post.title}
-          </div>
+            <div>{`♥ ${post.numLikes}`}</div>
+            </div>
+          </>
         ))}
       </div>
     </div>

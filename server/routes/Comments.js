@@ -108,13 +108,13 @@ router.get('/byPost/:params', async (req, res) => {
 // Deleting a comment (changing isDeleted value to true)
 // TODO need to check if req user and comment user matches
 router.delete('/:params', async (req, res) => {
-    const { postCategory, commentId } = JSON.parse(req.params.params);
+    const { category, id } = JSON.parse(req.params.params);
 
     const params = {
         TableName: 'Comment',
         Key: {
-            'postCategory': postCategory,
-            'commentId': commentId
+            'postCategory': category,
+            'commentId': id
         },
         UpdateExpression: 'SET isDeleted = :deleted',
         ExpressionAttributeValues: {

@@ -9,8 +9,8 @@ const userRouter = require('./routes/Users');
 const postRouter = require('./routes/Posts');
 const commentRouter = require('./routes/Comments');
 
-app.use('/users', userRouter);
 app.use('/posts', postRouter);
+app.use('/auth', userRouter);
 app.use('/comments', commentRouter);
 
 app.get('/', (req,res) => {
