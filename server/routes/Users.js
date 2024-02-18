@@ -1,99 +1,139 @@
-// TODO
-
 const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
-// const bcrypt = require('bcrypt');
-// const { sign } = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const { sign } = require('jsonwebtoken');
+const { validateToken } = require('../middlewares/AuthMiddleware');
+const AWS = require('aws-sdk');
 
-router.get('/', async (req, res) => {
-    const userList = await User.findAll();
-    res.json(userList);
+const dynamodb = new AWS.DynamoDB.DocumentClient();
+
+
+router.get('/verify', validateToken, (req, res) => {
+    res.json(req.user);
 });
 
-// router.post('/', async (req, res) => {
-//     const { name, password, email, school } = req.body;
-
-//     try {
-//         // Check if the email already exists in the database
-//         const existingUser = await User.findOne({
-//             where: {
-//                 email: email
-//             }
-//         });
-
-//         if (existingUser) {
-//             // Email already exists, send a response indicating that the user already exists
-//             return res.status(400).json({ error: 'User with this email already exists' });
-//         }
-
-//         // Email does not exist, create a new user
-//         await User.create({
-//             name: name,
-//             password: password,
-//             email: email,
-//             school: school
-//         });
-
-//         // Send a success response
-//         res.json({ success: true, message: 'User created successfully' });
-//     } catch (error) {
-//         // Handle any errors that occur during the database operation
-//         console.error('Error creating user:', error);
-//         res.status(500).json({ error: 'Internal Server Error' });
-//     }
+// router.get('/:id', async (req, res) => {
+//     const id = req.params.id;
+//     const user = await User.findByPk(id);
+//     res.json(user);
 // });
 
 
-router.get('/:id', async (req, res) => {
-    const id = req.params.id;
-    const user = await User.findByPk(id);
-    res.json(user);
+router.post('/', async (req, res) => {
+    const { nickname, password, email, school } = req.body;
+
+    // Generate the next highest uid for the given school
+    getNextUidForSchool(school)
+        .then(nextUid => {
+            // Hash the password
+            bcrypt.hash(password, 10)
+                .then(hash => {
+                    // Construct item parameters with the next uid
+                    const params = {
+                        TableName: 'User',
+                        Item: {
+                            'school': school,
+                            'uid': nextUid,
+                            'password': hash,
+                            'email': email,
+                            'background': '000000',
+                            'emailNotification': true,
+                            'font': 'testFont',
+                            'interactions': {'likedPost': [], 'commentedPost': [], 'createdPost': [], 'savedPost': []},
+                            'nickname': nickname
+                        }
+                    };
+
+                    // Insert the item into DynamoDB
+                    dynamodb.put(params, (putErr, putData) => {
+                        if (putErr) {
+                            console.error('Unable to add item to the table:', putErr);
+                            res.status(500).json({ error: 'Internal Server Error' });
+                        } else {
+                            console.log('Item added successfully:', putData);
+                            res.json('SUCCESS');
+                        }
+                    });
+                });
+        })
+        .catch(error => {
+            console.error('Error generating next uid:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        });
 });
 
-router.get('/byEmail/:email', async (req, res) => {
-    const { email } = req.params;
-    try {
-        // Find the user with the provided email
-        const user = await User.findOne({ where: { email: email } });
+// Function to get the next highest uid for a given school
+function getNextUidForSchool(school) {
+    return new Promise((resolve, reject) => {
+        const params = {
+            TableName: 'User',
+            KeyConditionExpression: 'school = :school',
+            ExpressionAttributeValues: {
+                ':school': school
+            },
+            ProjectionExpression: 'uid',
+            ScanIndexForward: false,
+            Limit: 1
+        };
 
-        if (user) {
-            // If user found, return the UserId
-            // console.log(`${user.id }`);
-            res.status(200).json({ userId: user.id });
-        } else {
-            // If user not found, return appropriate response
-            res.status(404).json({ error: 'User not found' });
+        dynamodb.query(params, (err, data) => {
+            if (err) {
+                reject(err);
+            } else {
+                if (data.Items.length === 0) {
+                    // If no user found for the school, start from 1
+                    resolve(1);
+                } else {
+                    // Get the highest uid and increment it by 1
+                    const highestUid = data.Items[0].uid;
+                    resolve(highestUid + 1);
+                }
+            }
+        });
+    });
+};
+
+
+
+router.post('/login', async (req, res) => {
+    const { password, email } = req.body;
+
+    // Scan the DynamoDB table to find a user with the provided email
+    // NOTE if school given, can perform query faster
+    const params = {
+        TableName: 'User',
+        FilterExpression: 'email = :email',
+        ExpressionAttributeValues: {
+            ':email': email
         }
-    } catch (error) {
-        // If any error occurs, return internal server error
-        console.error('Error finding user by email:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+    };
+
+    dynamodb.scan(params, async (err, data) => {
+        if (err) {
+            console.error('Error scanning DynamoDB table:', err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        // Check if any user with the provided email is found
+        if (data.Items.length === 0) {
+            res.json({error: "User Doesn't Exist"});
+        }
+
+        const user = data.Items[0]; // Assuming email is unique
+
+        bcrypt.compare(password, user.password).then((match) => {
+            if(!match) res.json({error: "Wrong Email and Password Combination"});
+    
+            const accessToken = sign({nickname: user.nickname, id: user.uid},"secret");
+            // console.log('login');
+            res.json({
+                token: accessToken,
+                nickname: user.nickname,
+                id: user.uid
+            });
+        });
+    });
 });
-
-// router.post('/login', async (req, res) => {
-//     const {password, email} = req.body;
-//     const user = await Users.findOne({
-//         where: {email: email}
-//     });
-//     if (!user) res.json({error: "Wrong username or password"});
-//     bcrypt.compare(password, user.password).then((match)=>{
-//         if(!match) res.json({error: "Wrong username or password"});
-
-//         const accessToken = sign({email: user.email, id: user.id },"secret");
-//         res.json(accessToken);
-//     });
-// });
-
-// router.get('/byGroup/:id', async (req, res) => {
-//     const groupId = req.params.id;
-//     const users = await Users.findAll({
-//         where: {
-//             GroupId: groupId
-//         }
-//     });
-//     res.json(users);
-// })
 
 module.exports = router;
