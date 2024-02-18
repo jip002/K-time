@@ -7,11 +7,13 @@ app.use(express.json());
 
 const userRouter = require('./routes/Users');
 const postRouter = require('./routes/Posts');
+const postLikeRouter = require('./routes/PostLikes');
 const commentRouter = require('./routes/Comments');
 
 app.use('/posts', postRouter);
 app.use('/auth', userRouter);
 app.use('/comments', commentRouter);
+app.use('/postlikes', postLikeRouter);
 
 app.get('/', (req,res) => {
     res.send("Hello World");

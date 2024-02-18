@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const AWS = require('aws-sdk');
 const {Comment} = require('../models');
+const { validateToken } = require('../middlewares/AuthMiddleware');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 
 // Create comment from a post
-router.post('/', async (req, res) => {
+router.post('/', validateToken, async (req, res) => {
     const comment = req.body;
 
     // Query params to get the highest commentId in the partition

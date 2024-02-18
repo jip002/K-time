@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const AWS = require('aws-sdk');
 const {Post} = require('../models');
+const { validateToken } = require('../middlewares/AuthMiddleware');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
@@ -33,7 +34,7 @@ router.get('/', async (req, res) => {
 
 
 // Creating a new post
-router.post('/', async (req, res) => {
+router.post('/', validateToken, async (req, res) => {
     const post = req.body;
 
     // Getting the date value

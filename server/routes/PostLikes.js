@@ -1,38 +1,68 @@
 const express = require('express');
 const router = express.Router();
+const AWS = require('aws-sdk');
 const { PostLike } = require('../models');
 const { validateToken } = require('../middlewares/AuthMiddleware');
 
-// router.get('/', async (req, res) => {
-//     const LikeList = await Like.findAll();
-//     res.json(LikeList);
-// });
+const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-router.post('/', validateToken, async (req, res) => {
-    const UserId = req.user.id;
-    const { PostId } = req.body;
+router.put('/', async (req, res) => {
+    let postCategory;
+    let postId;
+    let userId;
 
-    const found = await PostLike.findOne({
-        where: { 
-            PostId: PostId,
-            UserId: UserId
-        }
-    });
-    if(!found) {
-        await PostLike.create({
-            UserId: UserId,
-            PostId: PostId
-        });
-        res.json('Like Success');
-    }
-    else {
-        await PostLike.destroy({
-            where :{
-                UserId: UserId,
-                PostId: PostId
+    try {
+        // Retrieve the item from the table
+        const getItemParams = {
+            TableName: 'Post',
+            Key: {
+                'postCategory': postCategory,
+                'pid': postId
             }
-        });
-        res.json('UnLike Success');
+        };
+        const { Item } = await dynamodb.get(getItemParams).promise();
+
+        // If the item doesn't exist, return an error
+        if (!Item) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        // Update numLikes and likers based on whether userId is already in the list
+        let { numLikes, likers } = Item;
+        likers = likers || [];
+        const isLiked = likers.includes(userId);
+
+        // If the userId is not in the likers list, add it and increment numLikes; otherwise, remove it and decrement numLikes
+        if (!isLiked) {
+            likers.push(userId);
+            numLikes++;
+        } else {
+            const removeIndex = likers.indexOf(userId);
+            likers.splice(removeIndex, 1);
+            numLikes--;
+        }
+
+        // Update the item in the table with the modified numLikes and likers
+        const updateParams = {
+            TableName: 'Post',
+            Key: {
+                'postCategory': postCategory,
+                'pid': postId
+            },
+            UpdateExpression: 'SET numLikes = :numLikes, likers = :likers',
+            ExpressionAttributeValues: {
+                ':numLikes': numLikes,
+                ':likers': likers
+            },
+            ReturnValues: 'ALL_NEW' // Return the updated item
+        };
+        await dynamodb.update(updateParams).promise();
+
+        // Return success message
+        res.json(isLiked ? 'Unlike Success' : 'Like Success');
+    } catch (error) {
+        console.error('Error updating likes:', error);
+        res.status(500).json({ error: 'Error updating likes' });
     }
 });
 

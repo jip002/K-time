@@ -31,7 +31,7 @@ export const Post = () => {
             addedComment.commenter = res.data;
             setComments([...comments, addedComment]);
             setNewComment('');
-            console.log(res.data);
+            //console.log(res.data);
           }
         })
     };
