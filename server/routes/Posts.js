@@ -36,6 +36,8 @@ router.get('/', async (req, res) => {
 // Creating a new post
 router.post('/', validateToken, async (req, res) => {
     const post = req.body;
+    console.log("back", req.user.school);
+    const user = req.user;
 
     // Getting the date value
     const date = new Date();
@@ -85,14 +87,14 @@ router.post('/', validateToken, async (req, res) => {
                 'postCategory': post.postCategory,
                 'pid': nextPid,
 
-                'author': 'testNickname',  // TODO 로그인 기능 완성 후에 바꿔야 함
+                'author': user.nickname,
                 'body': post.postBody,
                 'postDate': formattedDate,
                 'isDeleted': false,
                 'isEdited': false,
                 'likers': [],
                 'numLikes': 0,
-                'school': 'ucsd',  // TODO 로그인 기능 완성 후에 바꿔야 함
+                'school': user.school,
                 'title': post.postTitle,
                 'viewCount': 0,
             },
@@ -105,6 +107,66 @@ router.post('/', validateToken, async (req, res) => {
               console.log('Item added successfully:', JSON.stringify(data, null, 2));
             }
         });
+
+        const userParams = {
+            TableName: 'User',
+            Key: {
+                'school': user.school,
+                'email': user.email
+            }
+        }
+
+        // Callback function to handle the user query result and update interactions
+        const userQueryCallback = (err, userData) => {
+            if (err) {
+                console.error('Unable to query User table:', err);
+                res.status(500).json({ error: 'Internal Server Error' });
+                return;
+            }
+
+            if (!userData.Item) {
+                res.status(404).json({ error: 'User not found' });
+                return;
+            }
+
+            // Update interactions object with the new post information
+            let interactions = userData.Item.interactions;
+
+            // Check if the postCategory key exists in createdPost
+            if (!interactions.createdPost[post.postCategory]) {
+                // If not, initialize it as an empty list
+                interactions.createdPost[post.postCategory] = [];
+            }
+            interactions.createdPost[post.postCategory].push(nextPid);
+
+            // Define params to update the User table with the modified interactions
+            const updateUserParams = {
+                TableName: 'User',
+                Key: {
+                    'school': user.school,
+                    'email': user.email
+                },
+                UpdateExpression: 'SET interactions = :interactions',
+                ExpressionAttributeValues: {
+                    ':interactions': interactions
+                },
+                ReturnValues: 'ALL_NEW'
+            };
+
+            // Update the User table with the modified interactions
+            dynamodb.update(updateUserParams, (err, data) => {
+                if (err) {
+                    console.error('Error updating User table:', err);
+                    res.status(500).json({ error: 'Error updating User table' });
+                    return;
+                }
+
+                console.log('User table updated successfully:', data);
+            });
+        };
+
+        // Query the User table to retrieve user data
+        dynamodb.get(userParams, userQueryCallback);
     };
 
     dynamodb.query(params, queryCallback);
@@ -195,6 +257,7 @@ router.get('/byCategory/:postCategory', async (req, res) => {
 
 // Deleting a post (changing isDeleted value to true)
 // TODO need to check if req user and post user matches
+// TODO update the user table
 router.delete('/:params', async (req, res) => {
     const { postCategory, pid } = JSON.parse(req.params.params);
 

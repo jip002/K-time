@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
                             'background': '000000',
                             'emailNotification': true,
                             'font': 'testFont',
-                            'interactions': {'likedPost': [], 'commentedPost': [], 'createdPost': [], 'savedPost': []},
+                            'interactions': {'likedPost': {}, 'commentedPost': {}, 'createdPost': {}, 'savedPost': {}},
                             'nickname': nickname
                         }
                     };
@@ -125,12 +125,14 @@ router.post('/login', async (req, res) => {
         bcrypt.compare(password, user.password).then((match) => {
             if(!match) res.json({error: "Wrong Email and Password Combination"});
     
-            const accessToken = sign({nickname: user.nickname, id: user.uid},"secret");
+            const accessToken = sign({nickname: user.nickname, id: user.uid, school: user.school, email: user.email},"secret");
             // console.log('login');
             res.json({
                 token: accessToken,
                 nickname: user.nickname,
-                id: user.uid
+                id: user.uid,
+                school: user.school,
+                email: user.email
             });
         });
     });

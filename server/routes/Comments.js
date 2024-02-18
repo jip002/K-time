@@ -135,9 +135,6 @@ router.delete('/:params', async (req, res) => {
 });
 
 
-// User likes a comment
-
-
 // TODO User edits a comment
 
 module.exports = router;
