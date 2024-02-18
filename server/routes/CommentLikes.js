@@ -1,25 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const AWS = require('aws-sdk');
-const { PostLike } = require('../models');
 const { validateToken } = require('../middlewares/AuthMiddleware');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 router.put('/', async (req, res) => {
     let postCategory;
-    let postId;
+    let commentId;
     let userId;  // uid of user who like
-    // let email;   // Or
-    let school;  // school of user who like
 
     try {
         // Retrieve the item from the table
         const getItemParams = {
-            TableName: 'Post',
+            TableName: 'Comment',
             Key: {
                 'postCategory': postCategory,
-                'pid': postId
+                'commentId': commentId
             }
         };
         const { Item } = await dynamodb.get(getItemParams).promise();
@@ -46,10 +43,10 @@ router.put('/', async (req, res) => {
 
         // Update the item in the table with the modified numLikes and likers
         const updateParams = {
-            TableName: 'Post',
+            TableName: 'Comment',
             Key: {
                 'postCategory': postCategory,
-                'pid': postId
+                'commentId': commentId
             },
             UpdateExpression: 'SET numLikes = :numLikes, likers = :likers',
             ExpressionAttributeValues: {
@@ -59,23 +56,6 @@ router.put('/', async (req, res) => {
             ReturnValues: 'ALL_NEW' // Return the updated item
         };
         await dynamodb.update(updateParams).promise();
-
-        // Update interactions in the User table
-        // TODO need to check wether the above code is working or not
-        // const updateUserParams = {
-        //     TableName: 'User',
-        //     Key: {
-        //         'school': school,
-        //         'uid': userId
-        //     },
-        //     UpdateExpression: isLiked ? 'DELETE interactions.likedPost :postId' : 'SET interactions.likedPost = list_append(if_not_exists(interactions.likedPost, :postIdList), :postId)',
-        //     ExpressionAttributeValues: {
-        //         ':postIdList': [postId],
-        //         ':postId': postId
-        //     },
-        //     ReturnValues: 'ALL_NEW'
-        // };
-        // await dynamodb.update(updateUserParams).promise();
 
         // Return success message
         res.json(isLiked ? 'Unlike Success' : 'Like Success');

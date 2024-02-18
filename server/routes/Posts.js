@@ -222,10 +222,6 @@ router.delete('/:params', async (req, res) => {
 });
 
 
-// TODO User likes a post
-//  Update Post likers, numLikes, add this post to the user in User table (need to store postCategory and postId)
-
-
 // TODO User saves a post
 
 
