@@ -37,6 +37,10 @@ export const Post = () => {
     };
 
     const deleteComment = (category, id) => {
+      // console.log(category);
+      // console.log(id);
+      // TODO sometimes, id is undefined when trying to delete right after adding the comment
+      // NOTE refreshing and deleting works
       const params = encodeURIComponent(JSON.stringify({ category, id }));
       axios.delete(`http://localhost:3001/comments/${params}`, {
         headers: { accessToken: sessionStorage.getItem('accessToken')}
