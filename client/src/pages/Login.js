@@ -6,9 +6,8 @@ import * as Yup from 'yup';
 import { useContext } from 'react';
 import { AuthContext } from '../helpers/AuthContext';
 import '../styles/Login.css';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
-import axios from 'axios';
 
 
 export const Login = () => {
