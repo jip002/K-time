@@ -95,7 +95,6 @@ function getNextUidForSchool(school) {
 };
 
 
-
 router.post('/login', async (req, res) => {
     const { password, email } = req.body;
 

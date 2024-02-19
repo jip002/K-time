@@ -288,7 +288,37 @@ router.delete('/:params', async (req, res) => {
 // TODO User saves a post
 
 
-// TODO User edits a post (title, body)
+// Editing a post (updating title and body and changing isEdited to true)
+// TODO: Need to check if req user and post user matches
+// TODO: store edited time?
+router.put('/:params', async (req, res) => {
+    const { postCategory, pid } = JSON.parse(req.params.params);
+    const { title, body } = req.body;
+
+    const params = {
+        TableName: 'Post',
+        Key: {
+            'postCategory': postCategory,
+            'pid': pid
+        },
+        UpdateExpression: 'SET title = :title, body = :body, isEdited = :isEdited',
+        ExpressionAttributeValues: {
+            ':title': title,
+            ':body': body,
+            ':isEdited': true,
+        },
+        ReturnValues: 'ALL_NEW'
+    };
+
+    dynamodb.update(params, (err, data) => {
+        if (err) {
+            console.error('Error updating post:', err);
+            res.status(500).json({ error: 'Error updating post.' });
+        } else {
+            res.json({ message: 'Post updated successfully.' });
+        }
+    });
+});
 
 
 module.exports = router;
