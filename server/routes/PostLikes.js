@@ -1,38 +1,132 @@
 const express = require('express');
 const router = express.Router();
+const AWS = require('aws-sdk');
 const { PostLike } = require('../models');
 const { validateToken } = require('../middlewares/AuthMiddleware');
 
-// router.get('/', async (req, res) => {
-//     const LikeList = await Like.findAll();
-//     res.json(LikeList);
-// });
+const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-router.post('/', validateToken, async (req, res) => {
-    const UserId = req.user.id;
-    const { PostId } = req.body;
+router.put('/', validateToken, async (req, res) => {
+    const user = req.user;
+    const uid = user.id;
+    const email = user.email;
+    const school = user.school;
+    const { postCategory, postId } = req.body;
 
-    const found = await PostLike.findOne({
-        where: { 
-            PostId: PostId,
-            UserId: UserId
-        }
-    });
-    if(!found) {
-        await PostLike.create({
-            UserId: UserId,
-            PostId: PostId
-        });
-        res.json('Like Success');
-    }
-    else {
-        await PostLike.destroy({
-            where :{
-                UserId: UserId,
-                PostId: PostId
+    try {
+        // Retrieve the item from the table
+        const getItemParams = {
+            TableName: 'Post',
+            Key: {
+                'postCategory': postCategory,
+                'pid': postId
             }
-        });
-        res.json('UnLike Success');
+        };
+        const { Item } = await dynamodb.get(getItemParams).promise();
+
+        // If the item doesn't exist, return an error
+        if (!Item) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        // Update numLikes and likers based on whether userId is already in the list
+        let { numLikes, likers } = Item;
+        likers = likers || [];
+        const isLiked = likers.includes(uid);
+
+        // If the userId is not in the likers list, add it and increment numLikes; otherwise, remove it and decrement numLikes
+        if (!isLiked) {
+            likers.push(uid);
+            numLikes++;
+        } else {
+            const removeIndex = likers.indexOf(uid);
+            likers.splice(removeIndex, 1);
+            numLikes--;
+        }
+
+        // Update the item in the table with the modified numLikes and likers
+        // Only storing uid since only user from the same school can view the post
+        const updateParams = {
+            TableName: 'Post',
+            Key: {
+                'postCategory': postCategory,
+                'pid': postId
+            },
+            UpdateExpression: 'SET numLikes = :numLikes, likers = :likers',
+            ExpressionAttributeValues: {
+                ':numLikes': numLikes,
+                ':likers': likers
+            },
+            ReturnValues: 'ALL_NEW' // Return the updated item
+        };
+        await dynamodb.update(updateParams).promise();
+
+        const userParams = {
+            TableName: 'User',
+            Key: {
+                'school': school,
+                'email': email
+            }
+        }
+
+        // Callback function to handle the user query result and update interactions
+        const userQueryCallback = (err, userData) => {
+            if (err) {
+                console.error('Unable to query User table:', err);
+                res.status(500).json({ error: 'Internal Server Error' });
+                return;
+            }
+
+            if (!userData.Item) {
+                res.status(404).json({ error: 'User not found' });
+                return;
+            }
+
+            // Update interactions object with the new post information
+            let interactions = userData.Item.interactions;
+
+            if (isLiked) {
+                interactions.likedPost[postCategory] = interactions.likedPost[postCategory].filter(item => item !== postId);
+            } else {
+                // Check if the postCategory key exists in likedPost
+                if (!interactions.likedPost[postCategory]) {
+                    interactions.likedPost[postCategory] = [];
+                }
+                interactions.likedPost[postCategory].push(postId);
+            }
+
+            // Define params to update the User table with the modified interactions
+            const updateUserParams = {
+                TableName: 'User',
+                Key: {
+                    'school': school,
+                    'email': email
+                },
+                UpdateExpression: 'SET interactions = :interactions',
+                ExpressionAttributeValues: {
+                    ':interactions': interactions
+                },
+                ReturnValues: 'ALL_NEW'
+            };
+
+            // Update the User table with the modified interactions
+            dynamodb.update(updateUserParams, (err, data) => {
+                if (err) {
+                    console.error('Error updating User table:', err);
+                    res.status(500).json({ error: 'Error updating User table' });
+                    return;
+                }
+
+                console.log('User table updated successfully:', data);
+            });
+        };
+        dynamodb.get(userParams, userQueryCallback);
+
+        // Return success message
+        res.json(isLiked ? 'Unlike Success' : 'Like Success');
+    } catch (error) {
+        console.error('Error updating likes:', error);
+        res.status(500).json({ error: 'Error updating likes' });
     }
 });
 

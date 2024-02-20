@@ -23,6 +23,8 @@ function App() {
       else setAuthState({
         nickname: res.data.nickname,
         id: res.data.id,
+        school: res.data.school,
+        email: res.data.email,
         status: true
       });
     })

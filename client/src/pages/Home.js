@@ -8,10 +8,10 @@ export const Home = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get('http://localhost:3001/schools')
-      .then((response)=>{
-          setSchools(response.data);
-    })
+    // axios.get('http://localhost:3001/schools')
+    //   .then((response)=>{
+    //       setSchools(response.data);
+    // })
   }, []);
 
   return (

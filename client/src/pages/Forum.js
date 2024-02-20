@@ -12,6 +12,9 @@ export const Forum = () => {
     .then((response)=>{
       setPosts(response.data);
     })
+    .catch((error) => {
+      console.error('Error fetching posts:', error);
+    });
   }, []);
 
   const handleClick = (postCategory, pid) => {
@@ -22,16 +25,14 @@ export const Forum = () => {
   return (
     <div className="Forum">
       <h1>UCSD Forum</h1>
-      <div className="postListContainer">
-        {posts.map(post => (
-          <>
+        <div className="postListContainer">
+          {posts.map(post => (
             <div key={`${post.postCategory}-${post.pid}`} className="post" onClick={() => handleClick(post.postCategory, post.pid)} style={{ cursor: 'pointer' }}>
-            {post.title}
-            <div>{`♥ ${post.numLikes}`}</div>
+              {post.title}
+              <div>{`♥ ${post.numLikes}`}</div>
             </div>
-          </>
-        ))}
-      </div>
+          ))}
+        </div>
     </div>
   );
 }

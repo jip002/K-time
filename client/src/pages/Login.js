@@ -22,7 +22,7 @@ export const Login = () => {
    useEffect(
       () => {
           if (user) {
-              console.log(user);
+            //   console.log(user);
               axios
                   .get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`, {
                       headers: {
@@ -80,7 +80,15 @@ export const Login = () => {
           if(res.data.error) alert(res.data.error);
           else {
             sessionStorage.setItem("accessToken", res.data.token);
-            setAuthState({nickname: res.data.nickname, id: res.data.id, status: true});
+            axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+
+            setAuthState({
+                nickname: res.data.nickname,
+                id: res.data.id,
+                school: res.data.school,
+                email: res.data.email,
+                status: true
+            });
           }
           console.log(res.data);
           navigate('/forum');
