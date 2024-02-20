@@ -80,6 +80,8 @@ export const Login = () => {
           if(res.data.error) alert(res.data.error);
           else {
             sessionStorage.setItem("accessToken", res.data.token);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+
             setAuthState({
                 nickname: res.data.nickname,
                 id: res.data.id,

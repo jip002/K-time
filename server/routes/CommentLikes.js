@@ -5,6 +5,7 @@ const { validateToken } = require('../middlewares/AuthMiddleware');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
+// Endpoint not checked yet
 router.put('/', async (req, res) => {
     let postCategory;
     let commentId;

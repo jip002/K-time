@@ -10,7 +10,6 @@ export const Forum = () => {
   useEffect(() => {
     axios.get('http://localhost:3001/posts')
     .then((response)=>{
-      //console.log(response.data);
       setPosts(response.data);
     })
     .catch((error) => {

@@ -6,12 +6,12 @@ const { validateToken } = require('../middlewares/AuthMiddleware');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-router.put('/', async (req, res) => {
-    let postCategory;
-    let postId;
-    let userId;  // uid of user who like
-    // let email;   // Or
-    let school;  // school of user who like
+router.put('/', validateToken, async (req, res) => {
+    const user = req.user;
+    const uid = user.id;
+    const email = user.email;
+    const school = user.school;
+    const { postCategory, postId } = req.body;
 
     try {
         // Retrieve the item from the table
@@ -32,19 +32,20 @@ router.put('/', async (req, res) => {
         // Update numLikes and likers based on whether userId is already in the list
         let { numLikes, likers } = Item;
         likers = likers || [];
-        const isLiked = likers.includes(userId);
+        const isLiked = likers.includes(uid);
 
         // If the userId is not in the likers list, add it and increment numLikes; otherwise, remove it and decrement numLikes
         if (!isLiked) {
-            likers.push(userId);
+            likers.push(uid);
             numLikes++;
         } else {
-            const removeIndex = likers.indexOf(userId);
+            const removeIndex = likers.indexOf(uid);
             likers.splice(removeIndex, 1);
             numLikes--;
         }
 
         // Update the item in the table with the modified numLikes and likers
+        // Only storing uid since only user from the same school can view the post
         const updateParams = {
             TableName: 'Post',
             Key: {
@@ -60,22 +61,66 @@ router.put('/', async (req, res) => {
         };
         await dynamodb.update(updateParams).promise();
 
-        // Update interactions in the User table
-        // TODO need to check wether the above code is working or not
-        // const updateUserParams = {
-        //     TableName: 'User',
-        //     Key: {
-        //         'school': school,
-        //         'uid': userId
-        //     },
-        //     UpdateExpression: isLiked ? 'DELETE interactions.likedPost :postId' : 'SET interactions.likedPost = list_append(if_not_exists(interactions.likedPost, :postIdList), :postId)',
-        //     ExpressionAttributeValues: {
-        //         ':postIdList': [postId],
-        //         ':postId': postId
-        //     },
-        //     ReturnValues: 'ALL_NEW'
-        // };
-        // await dynamodb.update(updateUserParams).promise();
+        const userParams = {
+            TableName: 'User',
+            Key: {
+                'school': school,
+                'email': email
+            }
+        }
+
+        // Callback function to handle the user query result and update interactions
+        const userQueryCallback = (err, userData) => {
+            if (err) {
+                console.error('Unable to query User table:', err);
+                res.status(500).json({ error: 'Internal Server Error' });
+                return;
+            }
+
+            if (!userData.Item) {
+                res.status(404).json({ error: 'User not found' });
+                return;
+            }
+
+            // Update interactions object with the new post information
+            let interactions = userData.Item.interactions;
+
+            if (isLiked) {
+                interactions.likedPost[postCategory] = interactions.likedPost[postCategory].filter(item => item !== postId);
+            } else {
+                // Check if the postCategory key exists in likedPost
+                if (!interactions.likedPost[postCategory]) {
+                    interactions.likedPost[postCategory] = [];
+                }
+                interactions.likedPost[postCategory].push(postId);
+            }
+
+            // Define params to update the User table with the modified interactions
+            const updateUserParams = {
+                TableName: 'User',
+                Key: {
+                    'school': school,
+                    'email': email
+                },
+                UpdateExpression: 'SET interactions = :interactions',
+                ExpressionAttributeValues: {
+                    ':interactions': interactions
+                },
+                ReturnValues: 'ALL_NEW'
+            };
+
+            // Update the User table with the modified interactions
+            dynamodb.update(updateUserParams, (err, data) => {
+                if (err) {
+                    console.error('Error updating User table:', err);
+                    res.status(500).json({ error: 'Error updating User table' });
+                    return;
+                }
+
+                console.log('User table updated successfully:', data);
+            });
+        };
+        dynamodb.get(userParams, userQueryCallback);
 
         // Return success message
         res.json(isLiked ? 'Unlike Success' : 'Like Success');

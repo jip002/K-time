@@ -75,66 +75,6 @@ router.post('/', validateToken, async (req, res) => {
                     res.json(comment); // Respond with the added comment but not necessary (?)
                 }
             });
-
-            // const userParams = {
-            //     TableName: 'User',
-            //     Key: {
-            //         'school': user.school,
-            //         'email': user.email
-            //     }
-            // }
-    
-            // // Callback function to handle the user query result and update interactions
-            // const userQueryCallback = (err, userData) => {
-            //     if (err) {
-            //         console.error('Unable to query User table:', err);
-            //         res.status(500).json({ error: 'Internal Server Error' });
-            //         return;
-            //     }
-    
-            //     if (!userData.Item) {
-            //         res.status(404).json({ error: 'User not found' });
-            //         return;
-            //     }
-    
-            //     // Update interactions object with the new post information
-            //     let interactions = userData.Item.interactions;
-    
-            //     // Check if the postCategory key exists in commentedPost
-            //     if (!interactions.commentedPost[comment.postCategory]) {
-            //         // If not, initialize it as an empty list
-            //         interactions.commentedPost[comment.postCategory] = [];
-            //     }
-            //     interactions.commentedPost[comment.postCategory].push(nextCommentId);
-    
-            //     // Define params to update the User table with the modified interactions
-            //     const updateUserParams = {
-            //         TableName: 'User',
-            //         Key: {
-            //             'school': user.school,
-            //             'email': user.email
-            //         },
-            //         UpdateExpression: 'SET interactions = :interactions',
-            //         ExpressionAttributeValues: {
-            //             ':interactions': interactions
-            //         },
-            //         ReturnValues: 'ALL_NEW'
-            //     };
-    
-            //     // Update the User table with the modified interactions
-            //     dynamodb.update(updateUserParams, (err, data) => {
-            //         if (err) {
-            //             console.error('Error updating User table:', err);
-            //             res.status(500).json({ error: 'Error updating User table' });
-            //             return;
-            //         }
-    
-            //         console.log('User table updated successfully:', data);
-            //     });
-            // };
-    
-            // Query the User table to retrieve user data
-            dynamodb.get(userParams, userQueryCallback);
         }
     });
 });
@@ -196,7 +136,8 @@ router.delete('/:params', async (req, res) => {
 });
 
 
-// TODO User edits a comment
+// User edits a comment
+// TODO need to check if req user and comment user matches
 router.put('/:params', async (req, res) => {
     const { postCategory, commentId } = JSON.parse(req.params.params);
     const { body } = req.body;
@@ -225,6 +166,8 @@ router.put('/:params', async (req, res) => {
     });
 });
 
+
+// Endpoint not checked yet
 router.post('/nested/:params', validateToken, async (req, res) => {
     const nestedComment = req.body;
     const user = req.user;
