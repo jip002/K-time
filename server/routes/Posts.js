@@ -162,6 +162,8 @@ router.post('/', validateToken, async (req, res) => {
                     console.error('Error updating User table:', err);
                     res.status(500).json({ error: 'Error updating User table' });
                     return;
+                } else {
+                    res.json({ success: true });
                 }
 
                 console.log('User table updated successfully:', data);

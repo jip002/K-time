@@ -81,6 +81,7 @@ router.post('/', validateToken, async (req, res) => {
 
 
 // Get all comments from a post
+// TODO sort by descending or ascending?
 router.get('/byPost/:params', async (req, res) => {
     const { postCategory, pid } = JSON.parse(req.params.params); // Decode parameters
 

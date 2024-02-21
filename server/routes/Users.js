@@ -8,16 +8,10 @@ const AWS = require('aws-sdk');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-
+// API
 router.get('/verify', validateToken, (req, res) => {
     res.json(req.user);
 });
-
-// router.get('/:id', async (req, res) => {
-//     const id = req.params.id;
-//     const user = await User.findByPk(id);
-//     res.json(user);
-// });
 
 
 router.post('/', async (req, res) => {
@@ -138,15 +132,13 @@ router.post('/login', async (req, res) => {
 // nickname 수정
 router.put('/nickname', validateToken, (req, res) => {
     const user = req.user;
-    const school = user.school;
-    const email = user.email;
     const { nickname } = req.body;
 
     const params = {
         TableName: 'User',
         Key: {
-            'school': school,
-            'email': email
+            'school': user.school,
+            'email': user.email
         },
         UpdateExpression: 'SET nickname = :newNickname',
         ExpressionAttributeValues: {
@@ -242,14 +234,12 @@ router.put('/pw', validateToken, async (req, res) => {
 // NOTE since it's using auth url, might need to move to a separate file?
 router.get('/likedPost', validateToken, (req, res) => {
     const user = req.user;
-    const school = user.school;
-    const email = user.email;
 
     const params = {
         TableName: 'User',
         Key: {
-            'school': school,
-            'email': email
+            'school': user.school,
+            'email': user.email
         }
     };
 
@@ -299,14 +289,12 @@ router.get('/likedPost', validateToken, (req, res) => {
 // NOTE since it's using auth url, might need to move to a separate file?
 router.get('/createdPost', validateToken, (req, res) => {
     const user = req.user;
-    const school = user.school;
-    const email = user.email;
 
     const params = {
         TableName: 'User',
         Key: {
-            'school': school,
-            'email': email
+            'school': user.school,
+            'email': user.email
         }
     };
 
