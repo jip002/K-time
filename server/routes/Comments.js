@@ -72,7 +72,7 @@ router.post('/', validateToken, async (req, res) => {
                     res.status(500).json({ error: 'Internal Server Error' });
                 } else {
                     console.log('Item added successfully:', data);
-                    res.json(comment); // Respond with the added comment but not necessary (?)
+                    res.json({nickname: comment.nickname, commentId: nextCommentId});
                 }
             });
         }
