@@ -21,26 +21,20 @@ export const Post = () => {
             PostId: pid,
             postCategory: postCategory
         };
-        // console.log(addedComment);
-        // console.log(authState.nickname);
         axios.post('http://localhost:3001/comments', addedComment, {headers: {
           accessToken: sessionStorage.getItem('accessToken')
         }}).then((res) => {
           if(res.data.error) alert(res.data.error);
           else {
-            addedComment.commenter = res.data;
+            addedComment.nickname = res.data.nickname;
+            addedComment.commentId = res.data.commentId;
             setComments([...comments, addedComment]);
             setNewComment('');
-            //console.log(res.data);
           }
         })
     };
 
     const deleteComment = (category, id) => {
-      // console.log(category);
-      // console.log(id);
-      // TODO sometimes, id is undefined when trying to delete right after adding the comment
-      // NOTE refreshing and deleting works
       const params = encodeURIComponent(JSON.stringify({ category, id }));
       axios.delete(`http://localhost:3001/comments/${params}`, {
         headers: { accessToken: sessionStorage.getItem('accessToken')}
