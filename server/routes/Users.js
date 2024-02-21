@@ -49,7 +49,7 @@ router.post('/', async (req, res) => {
                             res.status(500).json({ error: 'Internal Server Error' });
                         } else {
                             console.log('Item added successfully:', putData);
-                            res.json('SUCCESS');
+                            res.json({ success: true });
                         }
                     });
                 });
@@ -134,9 +134,109 @@ router.post('/login', async (req, res) => {
     });
 });
 
-// TODO nickname 수정
 
-// TODO password 수정
+// nickname 수정
+router.put('/nickname', validateToken, (req, res) => {
+    const user = req.user;
+    const school = user.school;
+    const email = user.email;
+    const { nickname } = req.body;
+
+    const params = {
+        TableName: 'User',
+        Key: {
+            'school': school,
+            'email': email
+        },
+        UpdateExpression: 'SET nickname = :newNickname',
+        ExpressionAttributeValues: {
+            ':newNickname': nickname
+        },
+        ReturnValues: 'ALL_NEW' // Optional parameter to return the updated item
+    };
+
+    // Update the item in the database
+    dynamodb.update(params, (err, data) => {
+        if (err) {
+            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+            res.status(500).json({ error: 'Unable to update nickname' });
+        } else {
+            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+            res.json({ success: true });
+        }
+    });
+});
+
+
+// check current password
+router.get('/currentPw', validateToken, async (req, res) => {
+    try {
+        const user = req.user;
+        const { currentPassword } = req.body;
+
+        // Retrieve the user's data from the database
+        const params = {
+            TableName: 'User',
+            Key: {
+                'school': user.school,
+                'email': user.email
+            }
+        };
+
+        dynamodb.get(params, async (err, data) => {
+            if (err) {
+                console.error("Error retrieving user data:", err);
+                return res.status(500).json({ error: 'Internal server error' });
+            }
+
+            if (!data.Item || !(await bcrypt.compare(currentPassword, data.Item.password))) {
+                return res.status(400).json({ error: 'Current password is incorrect' });
+            }
+
+            res.json({ success: true, message: 'Current password is correct' });
+        });
+    } catch (error) {
+        console.error('Error checking current password:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// password 수정
+router.put('/pw', validateToken, async (req, res) => {
+    try {
+        const user = req.user;
+        const { password } = req.body;
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const params = {
+            TableName: 'User',
+            Key: {
+                'school': user.school,
+                'email': user.email
+            },
+            UpdateExpression: 'SET password = :newPassword',
+            ExpressionAttributeValues: {
+                ':newPassword': hashedPassword
+            },
+            ReturnValues: 'ALL_NEW' // Optional parameter to return the updated item
+        };
+
+        // Update the item in the database
+        dynamodb.update(params, (err, data) => {
+            if (err) {
+                console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+                res.status(500).json({ error: 'Unable to update password' });
+            } else {
+                console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+                res.json({ success: true });
+            }
+        });
+    } catch (error) {
+        console.error('Error updating password:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 // 좋아요 누른 게시글 조회
 // NOTE since it's using auth url, might need to move to a separate file?
@@ -158,11 +258,6 @@ router.get('/likedPost', validateToken, (req, res) => {
             console.error('Error getting user:', err);
             res.status(500).json({ error: 'Error getting user.' });
         }
-
-        // TODO need to handle it differently since interactions is already defined for all users
-        // if (!data.Item || !data.Item.interactions) {
-        //     return res.json({ message: 'No interactions found for the user.' });
-        // }
 
         const likedPosts = data.Item.interactions.likedPost;
         const partitionKeys = Object.keys(likedPosts);
