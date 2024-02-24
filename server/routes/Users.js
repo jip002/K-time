@@ -16,7 +16,9 @@ router.get('/verify', validateToken, (req, res) => {
 
 router.get('/:id', async (req, res) => {
     const id = req.params.id;
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(id, {
+        attributes: {exclude: ['password']}
+    });
     res.json(user);
 });
 
