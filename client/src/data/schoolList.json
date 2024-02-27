@@ -1,19 +1,19 @@
 [
     {
       "id": 1,
-      "name": "UCSD"
-      
+      "name": "ucsd",
+      "hd":"ucsd.edu"
     },
     {
       "id": 2,
-      "name": "UCLA"
+      "name": "ucla"
     },
     {
         "id": 3,
-        "name": "UCB"
+        "name": "ucb"
     },
     {
         "id": 4,
-        "name": "UCSB"
+        "name": "ucsb"
     }
 ]
