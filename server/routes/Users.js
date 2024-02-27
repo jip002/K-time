@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { User } = require('../models');
+const { Post } = require('../models');
 const bcrypt = require('bcrypt');
 const { sign } = require('jsonwebtoken');
 const { validateToken } = require('../middlewares/AuthMiddleware');
@@ -54,5 +55,43 @@ router.post('/login', async (req, res) => {
         });
     });
 });
+
+router.put('/nickname/:id', validateToken, async (req, res) => {
+    const id = req.params.id;
+    const user = await User.findOne({
+        where: { id: id }
+    });
+    if(!user) res.json({error: "Change nickname failed : User Doesn't Exist"});
+    await User.update(
+        { nickname: req.body.nickname },
+        { where: {id : id} }
+    )
+    await Post.update(
+        { postAuthor: req.body.nickname },
+        { where: { UserId: id } }
+    );
+    res.json(user.nickname);
+})
+
+router.put('/changepw', validateToken, async (req,res) => {
+    const {oldPassword, newPassword} = req.body;
+    const user = await User.findOne({
+        where: { id: req.user.id }
+    });
+    if(!user) res.json({error: "Password Change Error: User Doesn't Exist"});
+
+    bcrypt.compare(oldPassword, user.password).then((match) => {
+        if(!match) res.json({error: "Wrong password!"});
+
+        bcrypt.hash(newPassword, 10).then((hash) => {
+        User.update(
+            { password: hash },
+            { where: {id : req.user.id} }
+        )
+        res.json('Password Update Success');
+        });
+        
+    });
+})
 
 module.exports = router;

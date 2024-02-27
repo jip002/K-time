@@ -11,6 +11,7 @@ export const Home = () => {
     axios.get('http://localhost:3001/schools')
       .then((response)=>{
           setSchools(response.data);
+          console.log(response.data);
     })
   }, []);
 

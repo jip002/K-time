@@ -7,6 +7,7 @@ import { Forum } from './pages/Forum';
 import { Post } from './pages/Post';
 import { SignUp } from './pages/SignUp';
 import { Profile } from './pages/Profile';
+import { ChangePW } from './pages/ChangePW';
 import './App.css';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -61,6 +62,7 @@ function App() {
             <Route path='/createpost' element={<CreatePost/>}></Route>
             <Route path='/forum' element={<Forum/>}></Route>
             <Route path='/post/:id' element={<Post/>}></Route>
+            <Route path='/changepw' element={<ChangePW/>}></Route>
           </Routes>
         </BrowserRouter>
       </AuthContext.Provider>

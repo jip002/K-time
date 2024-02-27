@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useParams } from 'react-router-dom';
-// import '../styles/Profile.css';
+import axios from 'axios';
+import '../styles/Profile.css';
 
 export const Profile = () => {
   //const [schools, setSchools] = useState([]);
@@ -10,6 +10,8 @@ export const Profile = () => {
   const { id } = useParams();
   const [userInfo, setUserInfo] = useState({});
   const [userPosts, setUserPosts] = useState([]);
+  const [changeNickName, setChangeNickName] = useState(false);
+  const [nickName, setNickName] = useState('');
 
   useEffect(() => {
     axios.get(`http://localhost:3001/auth/${id}`).then((res) => {
@@ -20,13 +22,44 @@ export const Profile = () => {
     });
   }, [])
 
+  const onConfirm = (data) => {
+    axios.put(`http://localhost:3001/auth/nickname/${id}`, {
+      id: id,
+      nickname: data
+    }, {
+      headers: {
+        accessToken: sessionStorage.getItem('accessToken')
+      }
+    }).then((res) => {
+        console.log(res.data);
+        setUserInfo({...userInfo, nickname: data});
+        setChangeNickName(false);
+      }
+    )
+  }
+
   return (
     <div className="ProfileContainer">
         <h1>Hello, {userInfo.nickname}</h1>
         <div className='profileInfo'>
-            <p>Nickname: {userInfo.nickname}</p>
+            {!changeNickName
+            ? <>
+              <p>Nickname: {userInfo.nickname}</p>
+              <button onClick={()=>{setChangeNickName(true)}}>Change nickname</button>
+            </>
+            : <>
+              <input
+                type="text"
+                value={nickName}
+                onChange={(event) => setNickName(event.target.value)}
+              />
+              <button onClick={()=>{onConfirm(nickName)}}>Confirm</button><br/>
+              <button onClick={()=>{setChangeNickName(false)}}>Cancel</button>
+            </>
+            }
             <p>Email Address: {userInfo.email}</p>
             <p>School: {userInfo.school}</p>
+            <button onClick={()=>navigate('/changepw')}>Change password</button>
         </div>
         <div className="postListContainer">
         {userPosts.map(post => (
