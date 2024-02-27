@@ -5,6 +5,7 @@ const { validateToken } = require('../middlewares/AuthMiddleware');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
+// TODO need to check if there is already a chat room with user1 and user2
 router.post('/', validateToken, async (req, res) => {
     let school = req.user.school;
     let user1Id = req.user.id;
@@ -24,38 +25,69 @@ router.post('/', validateToken, async (req, res) => {
     const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
     const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}:${milliseconds}`;
 
-    const itemParams = {
+    // Getting the max pid for a specified school
+    const params = {
         TableName: 'Chat',
-        Item: {
-            // Define the attributes of the item
-            'school': school,
-
-            'uid1': user1Id,
-            'lastReplyDate': formattedDate,
-            'uid2': user2Id,
-            'user1left': false,
-            'user1Nickname': user1Nickname,
-            'user2left': false,
-            'user2Nickname': user2Nickname,
-            'msgContent': {
-                'date': formattedDate,
-                'senderNickname': user1Nickname,
-                'senderId': user1Id,
-                'body': chatMsg
-            }
+        KeyConditionExpression: 'school = :school',
+        ExpressionAttributeValues: {
+            ':school': school
         },
+        ProjectionExpression: 'chatId', 
+        ScanIndexForward: false,
+        Limit: 1
     };
-
-    dynamodb.put(itemParams, (err, data) => {
+    
+    const queryCallback = (err, data) => {
         if (err) {
-          console.error('Unable to add item to the table. Error JSON:', JSON.stringify(err, null, 2));
-        } else {
-          console.log('Chat added successfully:', JSON.stringify(data, null, 2));
-          res.json({Success: "Success"});
+            console.error('Unable to query table:', err);
+            return;
         }
-    });
 
+        let lastChatId;
+        if (data.Items.length === 0) {
+            lastChatId = -1;
+        } else {
+            lastChatId = data.Items[0].chatId;
+        }
 
-})
+        // Increment the last pid value to get the next highest value
+        const nextChatId = lastChatId + 1;
+
+        const itemParams = {
+            TableName: 'Chat',
+            Item: {
+                // Define the attributes of the item
+                'school': school,
+                'chatId': nextChatId,
+    
+                'uid1': user1Id,
+                'lastReplyDate': formattedDate,
+                'uid2': user2Id,
+                'user1left': false,
+                'user1Nickname': user1Nickname,
+                'user2left': false,
+                'user2Nickname': user2Nickname,
+                'msgContent': [{
+                    'date': formattedDate,
+                    'senderNickname': user1Nickname,
+                    'senderId': user1Id,
+                    'body': chatMsg
+                }]
+            },
+        };
+
+        dynamodb.put(itemParams, (err, data) => {
+            if (err) {
+              console.error('Unable to add item to the table. Error JSON:', JSON.stringify(err, null, 2));
+            } else {
+              console.log('Chat added successfully:', JSON.stringify(data, null, 2));
+              res.json({Success: "Success"});
+            }
+        });
+    }
+
+    dynamodb.query(params, queryCallback);
+});
+
 
 module.exports = router;
