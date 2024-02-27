@@ -89,5 +89,127 @@ router.post('/', validateToken, async (req, res) => {
     dynamodb.query(params, queryCallback);
 });
 
+router.get('/', validateToken, async (req, res) => {
+    let school = req.user.school;
+    let userId = req.user.id;
+
+    const params = {
+        TableName: 'Chat',
+        KeyConditionExpression: 'school = :school',
+        FilterExpression: 'uid1 = :uid OR uid2 = :uid',
+        ExpressionAttributeValues: {
+            ':school': school,
+            ':uid': userId
+        }
+    };
+
+    dynamodb.query(params, (err, data) => {
+        if (err) {
+            console.error('Unable to query the table:', err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            res.json(data.Items);
+        }
+    });
+
+});
+
+router.get('/:params', validateToken, async (req, res) => {
+    const { chatId } = JSON.parse(req.params.params); // Decode parameters
+    let school = req.user.school;
+
+    const params = {
+        TableName: 'Chat',
+        KeyConditionExpression: 'school = :school AND chatId = :chatId',
+        ExpressionAttributeValues: {
+            ':school': school,
+            ':chatId': chatId,
+        }
+    };
+
+
+    dynamodb.query(params, (err, data) => {
+        if (err) {
+            console.error('Unable to query the table:', err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            const params2 = {
+                TableName: 'Chat',
+                Key: {
+                    'school': school,
+                    'chatId': chatId
+                },
+                UpdateExpression: 'SET isRead = :isRead',
+                ExpressionAttributeValues: {
+                    ':isRead': true
+                },
+                ReturnValues: 'ALL_NEW'
+                
+            };
+
+            dynamodb.update(params2, (err, data) => {
+                if (err) {
+                    console.error('Error updating post:', err);
+                    res.status(500).json({ error: 'Error updating post.' });
+                } else {
+                    res.json({ message: 'Read updated successfully.' });
+                }
+            });
+
+        }
+    });
+
+});
+
+router.delete('/:params', validateToken, async (req, res) => {
+    const { chatId } = JSON.parse(req.params.params); // Decode parameters
+    let school = req.user.school;
+    let userId = req.user.id;
+
+    const params = {
+        TableName: 'Chat',
+        KeyConditionExpression: 'school = :school',
+        FilterExpression: 'receiverId = :userId OR senderId = :userId',
+        ExpressionAttributeValues: {
+            ':school': school,
+            ':userId': userId
+        }
+    };
+
+    dynamodb.query(params, (err, data) => {
+        if (err) {
+            console.error('Unable to query the table:', err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            console.log(data[0]);
+            // const params2 = {
+            //     TableName: 'Chat',
+            //     Key: {
+            //         'school': school,
+            //         'chatId': chatId
+            //     },
+            //     UpdateExpression: 'SET isRead = :isRead',
+            //     ExpressionAttributeValues: {
+            //         ':isRead': true
+            //     },
+            //     ReturnValues: 'ALL_NEW'
+                
+            // };
+
+            // dynamodb.update(params2, (err, data) => {
+            //     if (err) {
+            //         console.error('Error updating post:', err);
+            //         res.status(500).json({ error: 'Error updating post.' });
+            //     } else {
+            //         res.json({ message: 'Read updated successfully.' });
+            //     }
+            // });
+
+        }
+    });
+
+});
+
+
 
 module.exports = router;
