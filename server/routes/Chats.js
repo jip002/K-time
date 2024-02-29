@@ -60,19 +60,15 @@ router.post('/', validateToken, async (req, res) => {
                 'school': school,
                 'chatId': nextChatId,
     
-                'uid1': user1Id,
-                'lastReplyDate': formattedDate,
-                'uid2': user2Id,
-                'user1left': false,
-                'user1Nickname': user1Nickname,
-                'user2left': false,
-                'user2Nickname': user2Nickname,
-                'msgContent': [{
-                    'date': formattedDate,
-                    'senderNickname': user1Nickname,
-                    'senderId': user1Id,
-                    'body': chatMsg
-                }]
+                'senderId': user1Id,
+                'date': formattedDate,
+                'receiverId': user2Id,
+                'senderLeft': false,
+                'senderNickname': user1Nickname,
+                'receiverLeft': false,
+                'receiverNickname': user2Nickname,
+                'msgContent': chatMsg,
+                'isRead': false,
             },
         };
 

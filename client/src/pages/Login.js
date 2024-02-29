@@ -90,7 +90,6 @@ export const Login = () => {
                 status: true
             });
           }
-          console.log(res.data);
           navigate('/forum');
         });
     };

@@ -100,6 +100,7 @@ router.post('/', validateToken, async (req, res) => {
                 'school': user.school,
                 'title': post.postTitle,
                 'viewCount': 0,
+                'numComments': 0,
             },
         };
 
