@@ -14,58 +14,58 @@ export const Login = () => {
   const [ user, setUser ] = useState([]);
   const [ profile, setProfile ] = useState([]);
 
-  const login = useGoogleLogin({
-      onSuccess: (codeResponse) => setUser(codeResponse),
-      onError: (error) => console.log('Login Failed:', error)
-  });
+//   const login = useGoogleLogin({
+//       onSuccess: (codeResponse) => setUser(codeResponse),
+//       onError: (error) => console.log('Login Failed:', error)
+//   });
 
-   useEffect(
-      () => {
-          if (user) {
-            //   console.log(user);
-              axios
-                  .get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`, {
-                      headers: {
-                          Authorization: `Bearer ${user.access_token}`,
-                          Accept: 'application/json'
-                      }
-                  })
-                  .then((res) => {
-                      setProfile(res.data);
-                      sendToServer(res.data);
-                        navigate('/forum', {
-                            state: {
-                                name: res.data.name,
-                                email: res.data.email,
-                                picture: res.data.picture
-                            }
-                        });
-                  })
-                  .catch((err) => console.log(err));
-          }
-      },
-      [ user ]
-  );
-  // log out function to log the user out of google and set the profile array to null
-  const logOut = () => {
-      googleLogout();
-      setProfile(null);
-  };
+//    useEffect(
+//       () => {
+//           if (user) {
+//             //   console.log(user);
+//               axios
+//                   .get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`, {
+//                       headers: {
+//                           Authorization: `Bearer ${user.access_token}`,
+//                           Accept: 'application/json'
+//                       }
+//                   })
+//                   .then((res) => {
+//                       setProfile(res.data);
+//                       sendToServer(res.data);
+//                         navigate('/forum', {
+//                             state: {
+//                                 name: res.data.name,
+//                                 email: res.data.email,
+//                                 picture: res.data.picture
+//                             }
+//                         });
+//                   })
+//                   .catch((err) => console.log(err));
+//           }
+//       },
+//       [ user ]
+//   );
+//   // log out function to log the user out of google and set the profile array to null
+//   const logOut = () => {
+//       googleLogout();
+//       setProfile(null);
+//   };
 
-  const sendToServer = (userInfo) => {
-    const userData = {
-        name: userInfo.name,
-        email: userInfo.email
-    };
+//   const sendToServer = (userInfo) => {
+//     const userData = {
+//         name: userInfo.name,
+//         email: userInfo.email
+//     };
 
-    axios.post('http://localhost:3001/users', userData)
-        .then(response => {
-            console.log('User info sent to server:', response.data);
-        })
-        .catch(error => {
-            console.error('Error sending user info:', error);
-        });
-};
+//     axios.post('http://localhost:3001/users', userData)
+//         .then(response => {
+//             console.log('User info sent to server:', response.data);
+//         })
+//         .catch(error => {
+//             console.error('Error sending user info:', error);
+//         });
+// };
 
   const navigate = useNavigate();
   const { authState, setAuthState } = useContext(AuthContext);
@@ -90,7 +90,6 @@ export const Login = () => {
                 status: true
             });
           }
-          console.log(res.data);
           navigate('/forum');
         });
     };
@@ -128,7 +127,7 @@ export const Login = () => {
             </Form>
         </Formik>
 
-      <h2>React Google Login</h2>
+      {/* <h2>React Google Login</h2>
             <br />
             <br />
             {profile ? (
@@ -143,7 +142,7 @@ export const Login = () => {
                 </div>
             ) : (
                 <button onClick={() => login()}>Sign in with Google 🚀 </button>
-            )}
+            )} */}
     </div>
   );
 }

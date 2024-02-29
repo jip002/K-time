@@ -72,8 +72,33 @@ router.post('/', validateToken, async (req, res) => {
                     res.status(500).json({ error: 'Internal Server Error' });
                 } else {
                     console.log('Item added successfully:', data);
-                    res.json({nickname: comment.nickname, commentId: nextCommentId});
                 }
+
+                // Increment numComments by 1
+                const updateParams = {
+                    TableName: 'Post',
+                    Key: {
+                        'postCategory': comment.postCategory,
+                        'pid': comment.PostId
+                    },
+                    UpdateExpression: 'SET #numComments = #numComments + :inc',
+                    ExpressionAttributeNames: {
+                        '#numComments': 'numComments'
+                    },
+                    ExpressionAttributeValues: {
+                        ':inc': 1
+                    }
+                };
+
+                dynamodb.update(updateParams, (err, data) => {
+                    if (err) {
+                        console.error('Unable to update numComments:', err);
+                        res.status(500).json({ error: 'Internal Server Error' });
+                    } else {
+                        console.log('numComments updated successfully:', data);
+                        res.json({nickname: comment.nickname, commentId: nextCommentId});
+                    }
+                });
             });
         }
     });
@@ -130,7 +155,36 @@ router.delete('/:params', async (req, res) => {
             console.error('Error updating post:', err);
             res.status(500).json({ error: 'Error updating post.' });
         } else {
-            res.json({ message: 'Comment deleted successfully.' });
+            if (data.Attributes) {
+                const oldPostId = data.Attributes.postId;
+                // Update numComments for the corresponding post
+                const updateParams = {
+                    TableName: 'Post',
+                    Key: {
+                        'postCategory': category,
+                        'pid': oldPostId
+                    },
+                    UpdateExpression: 'SET #numComments = #numComments - :dec',
+                    ExpressionAttributeNames: {
+                        '#numComments': 'numComments'
+                    },
+                    ExpressionAttributeValues: {
+                        ':dec': 1
+                    }
+                };
+                // Decrease numComments by 1
+                dynamodb.update(updateParams, (err, data) => {
+                    if (err) {
+                        console.error('Error updating numComments:', err);
+                        res.status(500).json({ error: 'Error updating numComments.' });
+                    } else {
+                        console.log('numComments updated successfully:', data);
+                        res.json({ message: 'Comment deleted successfully.' });
+                    }
+                });
+            } else {
+                res.status(404).json({ error: 'Comment not found.' });
+            }
         }
     });
 });

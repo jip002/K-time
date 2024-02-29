@@ -17,7 +17,8 @@ export const CreatePost = () => {
         axios.post('http://localhost:3001/posts', data, {headers: {
             accessToken: sessionStorage.getItem('accessToken')
           }}).then((res) => {
-            //console.log(res.data);
+            console.log(res.data);
+            console.log('test');
             navigate('/forum');
         })
     }
@@ -39,24 +40,24 @@ export const CreatePost = () => {
             <Form className = 'formContainer'>
                 <label>Title: </label><br/>
                 <Field 
-                id = 'inputCreatePost' 
-                name='postTitle' 
-                placeholder='Put title here...'
+                    id = 'inputCreatePost' 
+                    name='postTitle' 
+                    placeholder='Put title here...'
                 />
                 <br/><ErrorMessage name ='postTitle'component = 'span'/><br/>
                 <label>Body: </label><br/>
                 <Field 
-                as='textarea'
-                id = 'inputCreatePost' 
-                name='postBody' 
-                placeholder='Put body text here...'
+                    as='textarea'
+                    id = 'inputCreatePost' 
+                    name='postBody' 
+                    placeholder='Put body text here...'
                 />
                 <br/><ErrorMessage name ='postBody'component = 'span'/><br/>
                 <label>Category: </label><br/>
                 <Field 
-                id = 'inputCreatePost' 
-                name='postCategory' 
-                placeholder='Put category here...'
+                    id = 'inputCreatePost' 
+                    name='postCategory' 
+                    placeholder='Put category here...'
                 />
                 <br/><ErrorMessage name ='postCategory'component = 'span'/><br/>
                 <button type = 'submit'>Post</button>

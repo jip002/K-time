@@ -8,16 +8,10 @@ const AWS = require('aws-sdk');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-
+// API
 router.get('/verify', validateToken, (req, res) => {
     res.json(req.user);
 });
-
-// router.get('/:id', async (req, res) => {
-//     const id = req.params.id;
-//     const user = await User.findByPk(id);
-//     res.json(user);
-// });
 
 
 router.post('/', async (req, res) => {
@@ -136,17 +130,18 @@ router.post('/login', async (req, res) => {
 
 
 // nickname 수정
+// TODO update stored nicknames
+// TODO update changedNickname in token
 router.put('/nickname', validateToken, (req, res) => {
     const user = req.user;
-    const school = user.school;
-    const email = user.email;
-    const { nickname } = req.body;
+    const { id, nickname } = req.body;
+    console.log(id);
 
     const params = {
         TableName: 'User',
         Key: {
-            'school': school,
-            'email': email
+            'school': user.school,
+            'email': user.email
         },
         UpdateExpression: 'SET nickname = :newNickname',
         ExpressionAttributeValues: {
@@ -168,14 +163,14 @@ router.put('/nickname', validateToken, (req, res) => {
 });
 
 
-// check current password
-router.get('/currentPw', validateToken, async (req, res) => {
-    try {
-        const user = req.user;
-        const { currentPassword } = req.body;
+// password 수정
+router.put('/pw', validateToken, async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    const user = req.user;
 
-        // Retrieve the user's data from the database
-        const params = {
+    try {
+
+        const checkingOldPwparams = {
             TableName: 'User',
             Key: {
                 'school': user.school,
@@ -183,54 +178,43 @@ router.get('/currentPw', validateToken, async (req, res) => {
             }
         };
 
-        dynamodb.get(params, async (err, data) => {
+        dynamodb.get(checkingOldPwparams, async (err, data) => {
             if (err) {
                 console.error("Error retrieving user data:", err);
                 return res.status(500).json({ error: 'Internal server error' });
             }
-
-            if (!data.Item || !(await bcrypt.compare(currentPassword, data.Item.password))) {
+        
+            if (!data.Item || !(await bcrypt.compare(oldPassword, data.Item.password))) {
                 return res.status(400).json({ error: 'Current password is incorrect' });
             }
 
-            res.json({ success: true, message: 'Current password is correct' });
-        });
-    } catch (error) {
-        console.error('Error checking current password:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
+            // res.json({ success: true, message: 'Current password is correct' });
 
-// password 수정
-router.put('/pw', validateToken, async (req, res) => {
-    try {
-        const user = req.user;
-        const { password } = req.body;
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+            const params = {
+                TableName: 'User',
+                Key: {
+                    'school': user.school,
+                    'email': user.email
+                },
+                UpdateExpression: 'SET password = :newPassword',
+                ExpressionAttributeValues: {
+                    ':newPassword': hashedPassword
+                },
+                ReturnValues: 'ALL_NEW' // Optional parameter to return the updated item
+            };
 
-        const params = {
-            TableName: 'User',
-            Key: {
-                'school': user.school,
-                'email': user.email
-            },
-            UpdateExpression: 'SET password = :newPassword',
-            ExpressionAttributeValues: {
-                ':newPassword': hashedPassword
-            },
-            ReturnValues: 'ALL_NEW' // Optional parameter to return the updated item
-        };
-
-        // Update the item in the database
-        dynamodb.update(params, (err, data) => {
-            if (err) {
-                console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
-                res.status(500).json({ error: 'Unable to update password' });
-            } else {
-                console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
-                res.json({ success: true });
-            }
+            // Update the item in the database
+            dynamodb.update(params, (err, data) => {
+                if (err) {
+                    console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+                    res.status(500).json({ error: 'Unable to update password' });
+                } else {
+                    console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+                    res.json({ success: true });
+                }
+            });
         });
     } catch (error) {
         console.error('Error updating password:', error);
@@ -242,14 +226,12 @@ router.put('/pw', validateToken, async (req, res) => {
 // NOTE since it's using auth url, might need to move to a separate file?
 router.get('/likedPost', validateToken, (req, res) => {
     const user = req.user;
-    const school = user.school;
-    const email = user.email;
 
     const params = {
         TableName: 'User',
         Key: {
-            'school': school,
-            'email': email
+            'school': user.school,
+            'email': user.email
         }
     };
 
@@ -299,14 +281,13 @@ router.get('/likedPost', validateToken, (req, res) => {
 // NOTE since it's using auth url, might need to move to a separate file?
 router.get('/createdPost', validateToken, (req, res) => {
     const user = req.user;
-    const school = user.school;
-    const email = user.email;
+    console.log(user);
 
     const params = {
         TableName: 'User',
         Key: {
-            'school': school,
-            'email': email
+            'school': user.school,
+            'email': user.email
         }
     };
 
