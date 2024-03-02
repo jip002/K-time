@@ -179,62 +179,6 @@ router.post('/', validateToken, async (req, res) => {
 });
 
 
-// Opening a specific post
-router.get('/:params', validateToken, async (req, res) => {
-    // ISSUE post call is called twice
-    const { postCategory, pid } = JSON.parse(req.params.params); // Decode parameters
-    const user = req.user;
-    const school = user.school;
-    const params = {
-        TableName: 'Post',
-        KeyConditionExpression: 'postCategory = :postCategory AND pid = :pid',
-        ExpressionAttributeValues: {
-            ':postCategory': postCategory,
-            ':pid': pid,
-            ':school': school,
-        },
-        FilterExpression: 'school = :school'
-    };
-
-    dynamodb.query(params, (err, data) => {
-        if (err) {
-            console.error('Unable to scan post by postCategory and pid:', err);
-            res.status(500).json({ error: 'Unable to scan post.' });
-        } else {
-            if (data.Items.length === 0) {
-                res.status(404).json({ error: 'Post not found.' });
-            } else {
-                const post = data.Items[0];
-                // TODO increase viewCount for every refresh || set 10min lock for each user?
-                post.viewCount = (post.viewCount || 0) + 1;
-                const updateParams = {
-                    TableName: 'Post',
-                    Key: {
-                        'postCategory': postCategory,
-                        'pid': pid
-                    },
-                    UpdateExpression: 'SET viewCount = :viewCount',
-                    ExpressionAttributeValues: {
-                        ':viewCount': post.viewCount
-                    },
-                    ReturnValues: 'ALL_NEW'
-                };
-
-                dynamodb.update(updateParams, (err, data) => {
-                    if (err) {
-                        console.error('Error updating viewCount:', err);
-                        res.status(500).json({ error: 'Error updating viewCount.' });
-                    } else {
-                        // Return the updated post
-                        res.json(post);
-                    }
-                });
-            }
-        }
-    });
-});
-
-
 // Get post by postCategory
 router.get('/byCategory/:postCategory', validateToken, async (req, res) => {
     const postCategory = req.params.postCategory;
@@ -345,5 +289,174 @@ router.put('/:params', validateToken, async (req, res) => {
     });
 });
 
+
+router.get('/likedByUser', validateToken, (req, res) => {
+    const user = req.user;
+
+    const params = {
+        TableName: 'User',
+        Key: {
+            'school': user.school,
+            'email': user.email
+        }
+    };
+
+    dynamodb.get(params, (err, data) => {
+        if (err) {
+            console.error('Error getting user:', err);
+            res.status(500).json({ error: 'Error getting user.' });
+        }
+
+        if (!data.Item || !data.Item.likedPost) {
+            return res.json({ message: 'No post liked by this user.' });
+        }
+
+        const likedPosts = data.Item.likedPost;
+        const partitionKeys = Object.keys(likedPosts);
+        const queryPromises = [];
+
+        partitionKeys.forEach(partitionKey => {
+            const sortKeys = likedPosts[partitionKey];
+            sortKeys.forEach(sortKey => {
+                const postParams = {
+                    TableName: 'Post',
+                    Key: {
+                        'postCategory': partitionKey,
+                        'pid': sortKey
+                    }
+                };
+                // Push the promise returned by dynamodb.get() to the array
+                queryPromises.push(dynamodb.get(postParams).promise());
+            });
+        });
+
+        // Execute all queries asynchronously
+        Promise.all(queryPromises)
+            .then(results => {
+                // Extract the post data from the results
+                const posts = results.map(result => result.Item)
+                                    .filter(post => !post.isDeleted) // Exclude posts marked as deleted
+                                    .sort((a, b) => new Date(b.postDate) - new Date(a.postDate)); // Sort by postDate in descending order
+                res.json(posts);
+            })
+            .catch(error => {
+                console.error('Error fetching posts:', error);
+                res.status(500).json({ error: 'Error fetching posts.' });
+            });
+    });
+})
+
+
+router.get('/createdByUser', validateToken, (req, res) => {
+    const user = req.user;
+
+    const params = {
+        TableName: 'User',
+        Key: {
+            'school': user.school,
+            'email': user.email
+        }
+    };
+
+    dynamodb.get(params, (err, data) => {
+        if (err) {
+            console.error('Error getting user:', err);
+            res.status(500).json({ error: 'Error getting user.' });
+        }
+
+        if (!data.Item || !data.Item.createdPost) {
+            return res.json({ message: 'No post created by this user.' });
+        }
+
+        const createdPosts = data.Item.createdPost;
+        const partitionKeys = Object.keys(createdPosts);
+        const queryPromises = [];
+
+        partitionKeys.forEach(partitionKey => {
+            const sortKeys = createdPosts[partitionKey];
+            sortKeys.forEach(sortKey => {
+                const postParams = {
+                    TableName: 'Post',
+                    Key: {
+                        'postCategory': partitionKey,
+                        'pid': sortKey
+                    }
+                };
+                // Push the promise returned by dynamodb.get() to the array
+                queryPromises.push(dynamodb.get(postParams).promise());
+            });
+        });
+
+        // Execute all queries asynchronously
+        Promise.all(queryPromises)
+            .then(results => {
+                // Extract the post data from the results
+                const posts = results.map(result => result.Item)
+                                    .filter(post => !post.isDeleted) // Exclude posts marked as deleted
+                                    .sort((a, b) => new Date(b.postDate) - new Date(a.postDate)); // Sort by postDate in descending order
+                res.json(posts);
+            })
+            .catch(error => {
+                console.error('Error fetching posts:', error);
+                res.status(500).json({ error: 'Error fetching posts.' });
+            });
+    });
+})
+
+
+// Opening a specific post
+router.get('/:params', validateToken, async (req, res) => {
+    // ISSUE post call is called twice
+    const { postCategory, pid } = JSON.parse(req.params.params); // Decode parameters
+    const user = req.user;
+    const school = user.school;
+    const params = {
+        TableName: 'Post',
+        KeyConditionExpression: 'postCategory = :postCategory AND pid = :pid',
+        ExpressionAttributeValues: {
+            ':postCategory': postCategory,
+            ':pid': pid,
+            ':school': school,
+        },
+        FilterExpression: 'school = :school'
+    };
+
+    dynamodb.query(params, (err, data) => {
+        if (err) {
+            console.error('Unable to scan post by postCategory and pid:', err);
+            res.status(500).json({ error: 'Unable to scan post.' });
+        } else {
+            if (data.Items.length === 0) {
+                res.status(404).json({ error: 'Post not found.' });
+            } else {
+                const post = data.Items[0];
+                // TODO increase viewCount for every refresh || set 10min lock for each user?
+                post.viewCount = (post.viewCount || 0) + 1;
+                const updateParams = {
+                    TableName: 'Post',
+                    Key: {
+                        'postCategory': postCategory,
+                        'pid': pid
+                    },
+                    UpdateExpression: 'SET viewCount = :viewCount',
+                    ExpressionAttributeValues: {
+                        ':viewCount': post.viewCount
+                    },
+                    ReturnValues: 'ALL_NEW'
+                };
+
+                dynamodb.update(updateParams, (err, data) => {
+                    if (err) {
+                        console.error('Error updating viewCount:', err);
+                        res.status(500).json({ error: 'Error updating viewCount.' });
+                    } else {
+                        // Return the updated post
+                        res.json(post);
+                    }
+                });
+            }
+        }
+    });
+});
 
 module.exports = router;
