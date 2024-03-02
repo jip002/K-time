@@ -134,14 +134,14 @@ router.post('/', validateToken, async (req, res) => {
             }
 
             // Update interactions object with the new post information
-            let interactions = userData.Item.interactions;
+            let createdPost = userData.Item.createdPost;
 
             // Check if the postCategory key exists in createdPost
-            if (!interactions.createdPost[post.postCategory]) {
+            if (!createdPost[post.postCategory]) {
                 // If not, initialize it as an empty list
-                interactions.createdPost[post.postCategory] = [];
+                createdPost[post.postCategory] = [];
             }
-            interactions.createdPost[post.postCategory].push(nextPid);
+            createdPost[post.postCategory].push(nextPid);
 
             // Define params to update the User table with the modified interactions
             const updateUserParams = {
@@ -150,9 +150,9 @@ router.post('/', validateToken, async (req, res) => {
                     'school': user.school,
                     'email': user.email
                 },
-                UpdateExpression: 'SET interactions = :interactions',
+                UpdateExpression: 'SET createdPost = :createdPost',
                 ExpressionAttributeValues: {
-                    ':interactions': interactions
+                    ':createdPost': createdPost
                 },
                 ReturnValues: 'ALL_NEW'
             };

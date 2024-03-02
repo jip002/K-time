@@ -31,7 +31,8 @@ router.post('/', async (req, res) => {
                             'uid': nextUid,
                             'password': hash,
                             'email': email,
-                            'interactions': {'likedPost': {}, 'commentedPost': {}, 'createdPost': {}},
+                            'likedPost': {},
+                            'createdPost': {},
                             'nickname': nickname
                         }
                     };
@@ -223,7 +224,7 @@ router.put('/pw', validateToken, async (req, res) => {
 });
 
 // 좋아요 누른 게시글 조회
-// NOTE since it's using auth url, might need to move to a separate file?
+// TODO since it's using auth url, need to move to a separate file
 router.get('/likedPost', validateToken, (req, res) => {
     const user = req.user;
 
@@ -241,7 +242,11 @@ router.get('/likedPost', validateToken, (req, res) => {
             res.status(500).json({ error: 'Error getting user.' });
         }
 
-        const likedPosts = data.Item.interactions.likedPost;
+        if (!data.Item || !data.Item.likedPosts) {
+            return res.json({ message: 'No post liked by this user.' });
+        }
+
+        const likedPosts = data.Item.likedPost;
         const partitionKeys = Object.keys(likedPosts);
         const queryPromises = [];
 
@@ -278,7 +283,7 @@ router.get('/likedPost', validateToken, (req, res) => {
 
 
 // 작성한 게시글 조회
-// NOTE since it's using auth url, might need to move to a separate file?
+// TODO since it's using auth url, need to move to a separate file?
 router.get('/createdPost', validateToken, (req, res) => {
     const user = req.user;
     console.log(user);
@@ -297,12 +302,11 @@ router.get('/createdPost', validateToken, (req, res) => {
             res.status(500).json({ error: 'Error getting user.' });
         }
 
-        // TODO need to handle it differently since interactions is already defined for all users
-        if (!data.Item || !data.Item.interactions) {
-            return res.json({ message: 'No interactions found for the user.' });
+        if (!data.Item || !data.Item.createdPost) {
+            return res.json({ message: 'No post created by this user.' });
         }
 
-        const createdPosts = data.Item.interactions.createdPost;
+        const createdPosts = data.Item.createdPost;
         const partitionKeys = Object.keys(createdPosts);
         const queryPromises = [];
 
