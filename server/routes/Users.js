@@ -31,7 +31,8 @@ router.post('/', async (req, res) => {
                             'uid': nextUid,
                             'password': hash,
                             'email': email,
-                            'interactions': {'likedPost': {}, 'commentedPost': {}, 'createdPost': {}},
+                            'likedPost': {},
+                            'createdPost': {},
                             'nickname': nickname
                         }
                     };
@@ -257,121 +258,6 @@ router.put('/pw', validateToken, async (req, res) => {
         console.error('Error updating password:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
-});
-
-// 좋아요 누른 게시글 조회
-// NOTE since it's using auth url, might need to move to a separate file?
-router.get('/likedPost', validateToken, (req, res) => {
-    const user = req.user;
-
-    const params = {
-        TableName: 'User',
-        Key: {
-            'school': user.school,
-            'email': user.email
-        }
-    };
-
-    dynamodb.get(params, (err, data) => {
-        if (err) {
-            console.error('Error getting user:', err);
-            res.status(500).json({ error: 'Error getting user.' });
-        }
-
-        const likedPosts = data.Item.interactions.likedPost;
-        const partitionKeys = Object.keys(likedPosts);
-        const queryPromises = [];
-
-        partitionKeys.forEach(partitionKey => {
-            const sortKeys = likedPosts[partitionKey];
-            sortKeys.forEach(sortKey => {
-                const postParams = {
-                    TableName: 'Post',
-                    Key: {
-                        'postCategory': partitionKey,
-                        'pid': sortKey
-                    }
-                };
-                // Push the promise returned by dynamodb.get() to the array
-                queryPromises.push(dynamodb.get(postParams).promise());
-            });
-        });
-
-        // Execute all queries asynchronously
-        Promise.all(queryPromises)
-            .then(results => {
-                // Extract the post data from the results
-                const posts = results.map(result => result.Item)
-                                    .filter(post => !post.isDeleted) // Exclude posts marked as deleted
-                                    .sort((a, b) => new Date(b.postDate) - new Date(a.postDate)); // Sort by postDate in descending order
-                res.json(posts);
-            })
-            .catch(error => {
-                console.error('Error fetching posts:', error);
-                res.status(500).json({ error: 'Error fetching posts.' });
-            });
-    });
-});
-
-
-// 작성한 게시글 조회
-// NOTE since it's using auth url, might need to move to a separate file?
-router.get('/createdPost', validateToken, (req, res) => {
-    const user = req.user;
-    console.log(user);
-
-    const params = {
-        TableName: 'User',
-        Key: {
-            'school': user.school,
-            'email': user.email
-        }
-    };
-
-    dynamodb.get(params, (err, data) => {
-        if (err) {
-            console.error('Error getting user:', err);
-            res.status(500).json({ error: 'Error getting user.' });
-        }
-
-        // TODO need to handle it differently since interactions is already defined for all users
-        if (!data.Item || !data.Item.interactions) {
-            return res.json({ message: 'No interactions found for the user.' });
-        }
-
-        const createdPosts = data.Item.interactions.createdPost;
-        const partitionKeys = Object.keys(createdPosts);
-        const queryPromises = [];
-
-        partitionKeys.forEach(partitionKey => {
-            const sortKeys = createdPosts[partitionKey];
-            sortKeys.forEach(sortKey => {
-                const postParams = {
-                    TableName: 'Post',
-                    Key: {
-                        'postCategory': partitionKey,
-                        'pid': sortKey
-                    }
-                };
-                // Push the promise returned by dynamodb.get() to the array
-                queryPromises.push(dynamodb.get(postParams).promise());
-            });
-        });
-
-        // Execute all queries asynchronously
-        Promise.all(queryPromises)
-            .then(results => {
-                // Extract the post data from the results
-                const posts = results.map(result => result.Item)
-                                    .filter(post => !post.isDeleted) // Exclude posts marked as deleted
-                                    .sort((a, b) => new Date(b.postDate) - new Date(a.postDate)); // Sort by postDate in descending order
-                res.json(posts);
-            })
-            .catch(error => {
-                console.error('Error fetching posts:', error);
-                res.status(500).json({ error: 'Error fetching posts.' });
-            });
-    });
 });
 
 module.exports = router;

@@ -83,16 +83,16 @@ router.put('/', validateToken, async (req, res) => {
             }
 
             // Update interactions object with the new post information
-            let interactions = userData.Item.interactions;
+            let likedPost = userData.Item.likedPost;
 
             if (isLiked) {
-                interactions.likedPost[postCategory] = interactions.likedPost[postCategory].filter(item => item !== postId);
+                likedPost[postCategory] = likedPost[postCategory].filter(item => item !== postId);
             } else {
                 // Check if the postCategory key exists in likedPost
-                if (!interactions.likedPost[postCategory]) {
-                    interactions.likedPost[postCategory] = [];
+                if (!likedPost[postCategory]) {
+                    likedPost[postCategory] = [];
                 }
-                interactions.likedPost[postCategory].push(postId);
+                likedPost[postCategory].push(postId);
             }
 
             // Define params to update the User table with the modified interactions
@@ -102,9 +102,9 @@ router.put('/', validateToken, async (req, res) => {
                     'school': school,
                     'email': email
                 },
-                UpdateExpression: 'SET interactions = :interactions',
+                UpdateExpression: 'SET likedPost = :likedPost',
                 ExpressionAttributeValues: {
-                    ':interactions': interactions
+                    ':likedPost': likedPost
                 },
                 ReturnValues: 'ALL_NEW'
             };
