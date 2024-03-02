@@ -56,9 +56,10 @@ export const Login = () => {
 
   const sendToServer = (userInfo) => {
     fetch('../data/schoolList.json') // Fetch the JSON file from the public folder
-        .then(response => response)
+        .then(response => response.json())
         .then(schoolList => {
             // Find the school name corresponding to userInfo.hd
+            console.log(schoolList);
             const matchedSchool = schoolList.find(school => school.hd === userInfo.hd);
             const school = matchedSchool ? matchedSchool.name : null;
             const userData = {
@@ -77,6 +78,7 @@ export const Login = () => {
             console.error('Error fetching school list:', error);
         });
   };
+  
 //   const { authState, setAuthState } = useContext(AuthContext);
 
 //     const initialValues = {

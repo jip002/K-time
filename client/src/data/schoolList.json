@@ -6,14 +6,17 @@
     },
     {
       "id": 2,
-      "name": "ucla"
+      "name": "ucla",
+      "hd":"ucla.edu"
     },
     {
         "id": 3,
-        "name": "ucb"
+        "name": "ucb",
+        "hd":"ucb.edu"
     },
     {
         "id": 4,
-        "name": "ucsb"
+        "name": "ucsb",
+        "hd":"ucsb.edu"
     }
 ]
