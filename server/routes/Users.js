@@ -128,6 +128,43 @@ router.post('/login', async (req, res) => {
     });
 });
 
+router.post('/glogin', async (req, res) => {
+    const { password, email } = req.body;
+
+    // Scan the DynamoDB table to find a user with the provided email
+    // NOTE if school given, can perform query faster
+    const params = {
+        TableName: 'User',
+        FilterExpression: 'email = :email',
+        ExpressionAttributeValues: {
+            ':email': email
+        }
+    };
+
+    dynamodb.scan(params, async (err, data) => {
+        if (err) {
+            console.error('Error scanning DynamoDB table:', err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        // Check if any user with the provided email is found
+        if (data.Items.length === 0) {
+            res.json({error: "User Doesn't Exist"});
+        }
+
+        const user = data.Items[0]; // Assuming email is unique
+
+        const accessToken = sign({nickname: user.nickname, id: user.uid, school: user.school, email: user.email},"secret");
+            // console.log('login');
+            res.json({
+                token: accessToken,
+                nickname: user.nickname,
+                id: user.uid,
+                school: user.school,
+                email: user.email
+            });
+    });
+});
 
 // nickname 수정
 // TODO update stored nicknames

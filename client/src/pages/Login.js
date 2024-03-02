@@ -8,6 +8,7 @@ import { AuthContext } from '../helpers/AuthContext';
 import '../styles/Login.css';
 import { useState, useEffect } from 'react';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
+import schoolList from '../static/schoolList.json';
 
 
 export const Login = () => {
@@ -34,7 +35,7 @@ export const Login = () => {
                   .then((res) => {
                       console.log(res.data);
                       setProfile(res.data);
-                      sendToServer(res.data);
+                      sendToServer(res.data, schoolList);
                         navigate('/login', {
                             state: {
                                 name: res.data.name,
@@ -54,55 +55,51 @@ export const Login = () => {
       setProfile(null);
   };
 
-  const sendToServer = (userInfo) => {
-    fetch('../data/schoolList.json') // Fetch the JSON file from the public folder
-        .then(response => response.json())
-        .then(schoolList => {
-            // Find the school name corresponding to userInfo.hd
-            console.log(schoolList);
-            const matchedSchool = schoolList.find(school => school.hd === userInfo.hd);
-            const school = matchedSchool ? matchedSchool.name : null;
-            const userData = {
-                email: userInfo.email,
-                school: school
-            };
-            axios.post('http://localhost:3001/auth/login', userData)
-                .then(response => {
-                    console.log('User info sent to server:', response.data);
-                })
-                .catch(error => {
-                    console.error('Error sending user info:', error);
-                });
+  const sendToServer = (userInfo, schoolList) => {
+    // Instead of fetching, use the provided schoolList directly
+    // const schoolList = [...]; // Assume this is provided somewhere else in your code
+
+    // Now 'schoolList' is the array of schools
+    console.log(schoolList);
+    const matchedSchool = schoolList.find(school => school.hd === userInfo.hd);
+    const school = matchedSchool ? matchedSchool.name : null;
+    const userData = {
+        email: userInfo.email,
+        school: school
+    };
+    axios.post('http://localhost:3001/auth/glogin', userData)
+        .then(response => {
+            console.log('User info sent to server:', response.data);
         })
         .catch(error => {
-            console.error('Error fetching school list:', error);
+            console.error('Error sending user info:', error);
         });
-  };
+}
   
-//   const { authState, setAuthState } = useContext(AuthContext);
+  const { authState, setAuthState } = useContext(AuthContext);
 
-//     const initialValues = {
-//         password: '',
-//         email: ''
-//     };
+    const initialValues = {
+        password: '',
+        email: ''
+    };
 
-//     const onSubmit = (data) => {
-//         axios.post('http://localhost:3001/auth/login', data).then((res) => {
-//           if(res.data.error) alert(res.data.error);
-//           else {
-//             sessionStorage.setItem("accessToken", res.data.token);
-//             setAuthState({
-//                 nickname: res.data.nickname,
-//                 id: res.data.id,
-//                 school: res.data.school,
-//                 email: res.data.email,
-//                 status: true
-//             });
-//           }
-//           console.log(res.data);
-//           navigate('/login');
-//         });
-//     };
+    const onSubmit = (data) => {
+        axios.post('http://localhost:3001/auth/login', data).then((res) => {
+          if(res.data.error) alert(res.data.error);
+          else {
+            sessionStorage.setItem("accessToken", res.data.token);
+            setAuthState({
+                nickname: res.data.nickname,
+                id: res.data.id,
+                school: res.data.school,
+                email: res.data.email,
+                status: true
+            });
+          }
+          console.log(res.data);
+          navigate('/login');
+        });
+    };
 
     const validationSchema = Yup.object().shape({
       email: Yup.string().required('Email cannot be empty'),
@@ -113,7 +110,7 @@ export const Login = () => {
     <div className="Login">
       <h1>Login Page</h1>
 
-      {/* <Formik 
+      <Formik 
             initialValues={initialValues} 
             onSubmit = {onSubmit}
             validationSchema = {validationSchema}
@@ -135,7 +132,7 @@ export const Login = () => {
                 <br/><ErrorMessage name ='password'component = 'span'/><br/>
                 <button type='submit'>Login</button>
             </Form>
-        </Formik> */}
+        </Formik>
 
        <h2>React Google Login</h2>
             <br />
