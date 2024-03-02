@@ -3,18 +3,21 @@ const router = express.Router();
 const AWS = require('aws-sdk');
 const {Post} = require('../models');
 const { validateToken } = require('../middlewares/AuthMiddleware');
+const Cookies = require('js-cookie');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 
 // For showing all posts from recent to old on Forum page
-// TODO add filter expression by school later
-router.get('/', async (req, res) => {
+router.get('/', validateToken, async (req, res) => {
+    const user = req.user;
+    const school = user.school;
     const params = {
         TableName: 'Post',
-        FilterExpression: 'isDeleted <> :deleted',
+        FilterExpression: 'isDeleted <> :deleted AND school = :school',
         ExpressionAttributeValues: {
-            ':deleted': true
+            ':deleted': true,
+            ':school': school
         }
     };
 
@@ -36,7 +39,6 @@ router.get('/', async (req, res) => {
 // Creating a new post
 router.post('/', validateToken, async (req, res) => {
     const post = req.body;
-    console.log("back", req.user.school);
     const user = req.user;
 
     // Getting the date value
@@ -70,7 +72,6 @@ router.post('/', validateToken, async (req, res) => {
 
         let lastPid;
         if (data.Items.length === 0) {
-            res.status(404).json({ error: 'No items found for the specified postCategory.' });
             lastPid = -1;
         } else {
             lastPid = data.Items[0].pid;
@@ -87,6 +88,8 @@ router.post('/', validateToken, async (req, res) => {
                 'postCategory': post.postCategory,
                 'pid': nextPid,
 
+                'uid': user.id,
+                'lastEditDate': formattedDate,
                 'author': user.nickname,
                 'body': post.postBody,
                 'postDate': formattedDate,
@@ -97,6 +100,7 @@ router.post('/', validateToken, async (req, res) => {
                 'school': user.school,
                 'title': post.postTitle,
                 'viewCount': 0,
+                'numComments': 0,
             },
         };
 
@@ -159,6 +163,8 @@ router.post('/', validateToken, async (req, res) => {
                     console.error('Error updating User table:', err);
                     res.status(500).json({ error: 'Error updating User table' });
                     return;
+                } else {
+                    res.json({ success: true });
                 }
 
                 console.log('User table updated successfully:', data);
@@ -174,17 +180,20 @@ router.post('/', validateToken, async (req, res) => {
 
 
 // Opening a specific post
-// TODO add filter expression by school later
-router.get('/:params', async (req, res) => {
+router.get('/:params', validateToken, async (req, res) => {
     // ISSUE post call is called twice
     const { postCategory, pid } = JSON.parse(req.params.params); // Decode parameters
+    const user = req.user;
+    const school = user.school;
     const params = {
         TableName: 'Post',
         KeyConditionExpression: 'postCategory = :postCategory AND pid = :pid',
         ExpressionAttributeValues: {
             ':postCategory': postCategory,
-            ':pid': pid
-        }
+            ':pid': pid,
+            ':school': school,
+        },
+        FilterExpression: 'school = :school'
     };
 
     dynamodb.query(params, (err, data) => {
@@ -227,17 +236,19 @@ router.get('/:params', async (req, res) => {
 
 
 // Get post by postCategory
-// TODO add filter expression by school later
-router.get('/byCategory/:postCategory', async (req, res) => {
+router.get('/byCategory/:postCategory', validateToken, async (req, res) => {
     const postCategory = req.params.postCategory;
+    const user = req.user;
+    const school = user.school;
 
     const params = {
         TableName: 'Post',
         KeyConditionExpression: 'postCategory = :postCategory',
-        FilterExpression: 'isDeleted <> :deleted',
+        FilterExpression: 'isDeleted <> :deleted AND school = :school',
         ExpressionAttributeValues: {
             ':postCategory': postCategory,
-            ':deleted': true
+            ':deleted': true,
+            ':school': school,
         },
 
         ScanIndexForward: false  // In descending order
@@ -256,10 +267,9 @@ router.get('/byCategory/:postCategory', async (req, res) => {
 
 
 // Deleting a post (changing isDeleted value to true)
-// TODO need to check if req user and post user matches
-// TODO update the user table
-router.delete('/:params', async (req, res) => {
+router.delete('/:params', validateToken, async (req, res) => {
     const { postCategory, pid } = JSON.parse(req.params.params);
+    const user = req.user;
 
     const params = {
         TableName: 'Post',
@@ -267,9 +277,12 @@ router.delete('/:params', async (req, res) => {
             'postCategory': postCategory,
             'pid': pid
         },
+        ConditionExpression: 'uid = :uid AND school = :school',
         UpdateExpression: 'SET isDeleted = :deleted',
         ExpressionAttributeValues: {
-            ':deleted': true
+            ':deleted': true,
+            ':uid': user.id,
+            ':school': user.school,
         },
         ReturnValues: 'ALL_NEW'
     };
@@ -285,10 +298,52 @@ router.delete('/:params', async (req, res) => {
 });
 
 
-// TODO User saves a post
+// Editing a post (updating title and body and changing isEdited to true)
+// NOTE postCategory can't be edited
+router.put('/:params', validateToken, async (req, res) => {
+    const { postCategory, pid } = JSON.parse(req.params.params);
+    const { title, body } = req.body;
+    const user = req.user;
 
+    // Getting the date value
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+    const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}:${milliseconds}`;
 
-// TODO User edits a post (title, body)
+    const params = {
+        TableName: 'Post',
+        Key: {
+            'postCategory': postCategory,
+            'pid': pid
+        },
+        ConditionExpression: 'uid = :uid AND school = :school',
+        UpdateExpression: 'SET title = :title, body = :body, isEdited = :isEdited, lastEditDate = :lastEditDate',
+        ExpressionAttributeValues: {
+            ':title': title,
+            ':body': body,
+            ':isEdited': true,
+            ':lastEditDate': formattedDate,
+            ':uid': user.id,
+            ':school': user.school,
+        },
+        ReturnValues: 'ALL_NEW'
+    };
+
+    dynamodb.update(params, (err, data) => {
+        if (err) {
+            console.error('Error updating post:', err);
+            res.status(500).json({ error: 'Error updating post.' });
+        } else {
+            res.json({ message: 'Post updated successfully.' });
+        }
+    });
+});
 
 
 module.exports = router;

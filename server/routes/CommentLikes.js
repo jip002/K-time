@@ -5,10 +5,11 @@ const { validateToken } = require('../middlewares/AuthMiddleware');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-router.put('/', async (req, res) => {
-    let postCategory;
-    let commentId;
-    let userId;  // uid of user who like
+// Commentlike
+router.put('/', validateToken, async (req, res) => {
+    let postCategory = req.body.postCategory;
+    let commentId = req.body.commentId;
+    let userId = req.user.id;  // uid of user who like
 
     try {
         // Retrieve the item from the table
