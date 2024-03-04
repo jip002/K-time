@@ -3,36 +3,41 @@ const router = express.Router();
 const { PostLike } = require('../models');
 const { validateToken } = require('../middlewares/AuthMiddleware');
 
-// router.get('/', async (req, res) => {
-//     const LikeList = await Like.findAll();
-//     res.json(LikeList);
-// });
+router.get('/:id', async (req, res) => {
+    const postId = req.params.id;
+    const likes = await PostLike.findAll({
+        where: {
+            PostId: postId
+        }
+    })
+    res.json(likes);
+})
 
-router.post('/', validateToken, async (req, res) => {
-    const UserId = req.user.id;
-    const { PostId } = req.body;
+router.post('/:id', validateToken, async (req, res) => {
+    const userId = req.user.id;
+    const postId = req.params.id;
 
     const found = await PostLike.findOne({
         where: { 
-            PostId: PostId,
-            UserId: UserId
+            UserId: userId,
+            PostId: postId
         }
     });
     if(!found) {
-        await PostLike.create({
-            UserId: UserId,
-            PostId: PostId
+        const newLike = await PostLike.create({
+            UserId: userId,
+            PostId: postId
         });
-        res.json('Like Success');
+        res.json({liked: true, newLike: newLike});
     }
     else {
         await PostLike.destroy({
             where :{
-                UserId: UserId,
-                PostId: PostId
+                UserId: userId,
+                PostId: postId
             }
         });
-        res.json('UnLike Success');
+        res.json({liked: false, newLike: null});
     }
 });
 

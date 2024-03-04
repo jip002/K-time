@@ -99,3 +99,13 @@
     min-width: 300px; /* Minimum width */
     min-height: 150px; /* Minimum height */
   }
+
+  .userLiked {
+    color: blue; /* Change to your preferred shade of blue */
+  }
+  
+  /* Style for when a user has not liked a post */
+  .userNotLiked {
+    color: gray; /* Adjust transparency and shade as needed */
+    opacity: 0.5; /* Makes the icon semi-transparent */
+  }

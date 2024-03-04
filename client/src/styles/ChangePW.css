@@ -44,7 +44,7 @@
   
   /* Submit Button */
   .changePasswordContainer button {
-    background-color: #007bff; /* A vibrant shade for the button */
+    background-color: #004175; /* A vibrant shade for the button */
     color: #ffffff;
     padding: 10px 20px;
     border: none;
@@ -55,7 +55,7 @@
   }
   
   .changePasswordContainer button:hover {
-    background-color: #0056b3; /* Darker shade on hover */
+    background-color: #004175;/* Darker shade on hover */
   }
   
   /* Error Message */
