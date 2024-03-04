@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User } = require('../models');
-const { Post } = require('../models');
+const { User, Post, Comment } = require('../models');
 const bcrypt = require('bcrypt');
 const { sign } = require('jsonwebtoken');
 const { validateToken } = require('../middlewares/AuthMiddleware');
@@ -68,6 +67,10 @@ router.put('/nickname/:id', validateToken, async (req, res) => {
     )
     await Post.update(
         { postAuthor: req.body.nickname },
+        { where: { UserId: id } }
+    );
+    await Comment.update(
+        { commenter: req.body.nickname },
         { where: { UserId: id } }
     );
     res.json(user.nickname);

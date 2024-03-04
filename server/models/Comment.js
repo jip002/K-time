@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true,
         },
     });
+
     Comment.associate = (models) => {
         Comment.hasMany(models.Subcomment, {});
     };

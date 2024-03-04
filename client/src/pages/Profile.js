@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
@@ -7,7 +7,7 @@ import '../styles/Profile.css';
 export const Profile = () => {
   //const [schools, setSchools] = useState([]);
   const navigate = useNavigate();
-  const { id } = useParams();
+  const {id} = useParams();
   const [userInfo, setUserInfo] = useState({});
   const [userPosts, setUserPosts] = useState([]);
   const [changeNickName, setChangeNickName] = useState(false);
@@ -16,6 +16,7 @@ export const Profile = () => {
   useEffect(() => {
     axios.get(`http://localhost:3001/auth/${id}`).then((res) => {
         setUserInfo(res.data);
+        console.log(res.data)
     });
     axios.get(`http://localhost:3001/posts/byUser/${id}`).then((res) => {
         setUserPosts(res.data);
@@ -23,6 +24,7 @@ export const Profile = () => {
   }, [])
 
   const onConfirm = (data) => {
+    console.log(data)
     axios.put(`http://localhost:3001/auth/nickname/${id}`, {
       id: id,
       nickname: data
@@ -61,6 +63,7 @@ export const Profile = () => {
             <p>School: {userInfo.school}</p>
             <button onClick={()=>navigate('/changepw')}>Change password</button>
         </div>
+
         <div className="postListContainer">
         {userPosts.map(post => (
           <>

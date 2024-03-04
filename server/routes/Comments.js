@@ -10,8 +10,8 @@ router.get('/', async (req, res) => {
 
 router.post('/', validateToken, async (req, res) => {
     const comment = req.body;
-    //if(comment.commenter == '') comment.commenter = 'Anonymous User';
     comment.commenter = req.user.nickname;
+    comment.UserId = req.user.id;
     const newComment = await Comment.create(comment);
     res.json({nickname: req.user.nickname, commentId: newComment.id});
 });

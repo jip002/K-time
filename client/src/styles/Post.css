@@ -102,10 +102,12 @@
 
   .userLiked {
     color: blue; /* Change to your preferred shade of blue */
+    cursor: pointer; 
   }
   
   /* Style for when a user has not liked a post */
   .userNotLiked {
     color: gray; /* Adjust transparency and shade as needed */
     opacity: 0.5; /* Makes the icon semi-transparent */
+    cursor: pointer; 
   }
