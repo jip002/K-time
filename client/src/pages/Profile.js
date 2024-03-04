@@ -1,13 +1,15 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect, useContext} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
+import { AuthContext } from '../helpers/AuthContext';
 import axios from 'axios';
 import '../styles/Profile.css';
 
 export const Profile = () => {
   //const [schools, setSchools] = useState([]);
   const navigate = useNavigate();
-  const {id} = useParams();
+  const {authState, setAuthState} = useContext(AuthContext);
+  const { id } = useParams();
   const [userInfo, setUserInfo] = useState({});
   const [userPosts, setUserPosts] = useState([]);
   const [changeNickName, setChangeNickName] = useState(false);
@@ -34,7 +36,9 @@ export const Profile = () => {
       }
     }).then((res) => {
         console.log(res.data);
-        setUserInfo({...userInfo, nickname: data});
+        setUserInfo({...userInfo, nickname: res.data.nickname});
+        sessionStorage.setItem("accessToken", res.data.token);
+        setAuthState({nickname: res.data.nickname, id: res.data.id, status: true});
         setChangeNickName(false);
       }
     )

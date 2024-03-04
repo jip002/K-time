@@ -73,7 +73,10 @@ router.put('/nickname/:id', validateToken, async (req, res) => {
         { commenter: req.body.nickname },
         { where: { UserId: id } }
     );
-    res.json(user.nickname);
+
+    const accessToken = sign({nickname: user.nickname, id: user.id},"secret");
+
+    res.json({token: accessToken, nickname: req.body.nickname, id: id});
 })
 
 router.put('/changepw', validateToken, async (req,res) => {

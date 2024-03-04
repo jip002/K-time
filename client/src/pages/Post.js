@@ -49,6 +49,7 @@ export const Post = () => {
           else {
             addedComment.commenter = res.data.nickname;
             addedComment.id = res.data.commentId;
+            console.log(addedComment)
             setComments([...comments, addedComment]);
             setNewComment('');
           }
@@ -66,6 +67,9 @@ export const Post = () => {
     };
 
     useEffect(() => {
+      console.log("#")
+      console.log(authState.nickname);
+      console.log("#")
         axios.get(`http://localhost:3001/posts/${id}`)
         .then((response)=>{
           setPost(response.data);
@@ -101,6 +105,7 @@ export const Post = () => {
             ? (<ThumbUpIcon className = 'userLiked' onClick = {likeAPost}/>)
             : (<ThumbUpIcon className = 'userNotLiked' onClick = {likeAPost}/>)}
             <div>{likes.length}</div>
+            <button>Delete Post</button>
             
         </div>
         <div className='commentsContainer'>
