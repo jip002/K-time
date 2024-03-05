@@ -113,7 +113,7 @@ router.post('/login', async (req, res) => {
 
         // Check if any user with the provided email is found
         if (data.Items.length === 0) {
-            res.json({error: "User Doesn't Exist"});
+            return res.json({error: "User Doesn't Exist"});
         }
 
         const user = data.Items[0]; // Assuming email is unique
@@ -155,7 +155,7 @@ router.post('/glogin', async (req, res) => {
 
         // Check if any user with the provided email is found
         if (data.Items.length === 0) {
-            res.json({error: "User Doesn't Exist"});
+            return res.json({error: "User Doesn't Exist"});
         }
 
         const user = data.Items[0]; // Assuming email is unique

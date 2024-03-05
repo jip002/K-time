@@ -16,7 +16,7 @@ export const Profile = () => {
     axios.get(`http://localhost:3001/auth/verify`).then((res) => {
         setUserInfo(res.data);
     });
-    axios.get(`http://localhost:3001/auth/createdPost`).then((res) => {
+    axios.get(`http://localhost:3001/posts/createdByUser`).then((res) => {
         setUserPosts(res.data);
     });
 

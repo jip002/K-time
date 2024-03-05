@@ -73,8 +73,8 @@ export const Login = () => {
                   email: res.data.email,
                   status: true
               });
+              navigate('/forum');
             }
-            navigate('/forum');
         })
         .catch(error => {
             console.error('Error sending user info:', error);
@@ -101,9 +101,9 @@ export const Login = () => {
                 email: res.data.email,
                 status: true
             });
+            navigate('/forum');
           }
           console.log(res.data);
-          navigate('/forum');
         });
     };
 
