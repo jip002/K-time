@@ -34,7 +34,7 @@ router.get('/:id', async (req, res) => {
     res.json(post);
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', validateToken, async (req, res) => {
     const postId = req.params.id;
     Post.destroy({
         where: {
@@ -43,5 +43,24 @@ router.delete('/:id', async (req, res) => {
     });
     res.json(`${postId} deleted from the database`);
 });
+
+router.put('/:id', validateToken, async (req, res) => {
+    const postId = req.params.id;
+    const {postTitle, postBody, postCategory} = req.body;
+    await Post.update(
+        {
+            postTitle: postTitle,
+            postBody: postBody,
+            postCategory: postCategory
+        },
+        {
+            where: {
+                id: postId
+            }
+        }
+    )
+    const updatedPost = await Post.findByPk(postId);
+    res.json(updatedPost);
+})
 
 module.exports = router;

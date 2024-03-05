@@ -1,6 +1,8 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect, useContext } from 'react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../helpers/AuthContext';
 import '../styles/Post.css';
@@ -9,9 +11,11 @@ import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 
 export const Post = () => {
     let { id } = useParams()
+    const navigate = useNavigate();
     const [post, setPost] = useState({});
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState({});
+    const [onEdit, setOnEdit] = useState(false);
     const [userLiked, setUserLiked] = useState(false);
     const [likes, setLikes] = useState([]);
     const {authState} = useContext(AuthContext);
@@ -33,6 +37,19 @@ export const Post = () => {
         else 
           console.log(res.data) // error occured
       })
+    }
+
+    const deletePost = () => {
+      axios.delete(`http://localhost:3001/posts/${id}`, {headers: {
+        accessToken: sessionStorage.getItem('accessToken')
+      }}).then((res) => {
+        console.log(res.data);
+        navigate('/forum');
+      })
+    }
+
+    const editPost = (isEdit) => {
+      setOnEdit(isEdit);
     }
 
     const addComment = () => {
@@ -94,20 +111,81 @@ export const Post = () => {
 
       }, []);
     
+
+    const initialValues = {
+        postTitle: post.postTitle,
+        postBody: post.postBody,
+        postCategory: post.postCategory
+    }
+
+    const onSubmit = (data) => {
+        axios.put(`http://localhost:3001/posts/${id}`, data, {headers: {
+            accessToken: sessionStorage.getItem('accessToken')
+          }}).then((res) => {
+            setOnEdit(false);
+            setPost(res.data);
+        })
+    }
+
+    const validationSchema = Yup.object().shape({
+        postTitle: Yup.string().max(100).required('Title cannot be empty'),
+        postBody: Yup.string().required('Body text cannot be empty'),
+        postCategory: Yup.string().required('Category cannot be empty')
+    })
+
+
     return (
       <div className="PostPage">
-        <div className='postContainer'>
-            <div>{post.postTitle}</div>
-            <div className = 'postBody'>{post.postBody}</div>
-            <div>{post.postCategory}</div>
-            <div>{post.postAuthor}</div>
-            {userLiked 
-            ? (<ThumbUpIcon className = 'userLiked' onClick = {likeAPost}/>)
-            : (<ThumbUpIcon className = 'userNotLiked' onClick = {likeAPost}/>)}
-            <div>{likes.length}</div>
-            <button>Delete Post</button>
-            
-        </div>
+        { !onEdit 
+          ? <div className='postContainer'>
+              <div>{post.postTitle}</div>
+              <div className = 'postBody'>{post.postBody}</div>
+              <div>{post.postCategory}</div>
+              <div>{post.postAuthor}</div>
+              {userLiked 
+              ? (<ThumbUpIcon className = 'userLiked' onClick = {likeAPost}/>)
+              : (<ThumbUpIcon className = 'userNotLiked' onClick = {likeAPost}/>)}
+              <div>{likes.length}</div>
+              {authState.nickname === post.postAuthor && 
+                <>
+                  <button onClick = {() => editPost(true)}>Edit</button>
+                  <button onClick = {() => {deletePost()}}>Delete Post</button>
+                </>
+              }
+            </div>
+          : <div className = 'editPostContainer'>
+              <Formik 
+                initialValues={initialValues} 
+                onSubmit = {onSubmit}
+                validationSchema = {validationSchema}
+              >
+                <Form className = 'formContainer'>
+                    <label>Title: </label><br/>
+                    <Field 
+                        id = 'inputCreatePost' 
+                        name='postTitle' 
+                    />
+                    <br/><ErrorMessage name ='postTitle'component = 'span'/><br/>
+                    <label>Body: </label><br/>
+                    <Field 
+                        as='textarea'
+                        id = 'inputCreatePost' 
+                        name='postBody' 
+                    />
+                    <br/><ErrorMessage name ='postBody'component = 'span'/><br/>
+                    <label>Category: </label><br/>
+                    <Field 
+                        id = 'inputCreatePost' 
+                        name='postCategory' 
+                    />
+                    <br/><ErrorMessage name ='postCategory'component = 'span'/><br/>
+                    <button type='submit'>Confirm</button>
+                </Form>
+              </Formik>
+              <button onClick = {() => editPost(false)}>cancel</button>
+            </div>
+        }
+
         <div className='commentsContainer'>
             {comments.map((comment, key) => (
             <div key = {key} className='commentForm'>

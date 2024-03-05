@@ -23,6 +23,7 @@ export const Forum = () => {
             <div key={post.id} className="post" onClick={() => navigate(`/post/${post.id}`)} style={{ cursor: 'pointer' }}>
             {post.postTitle}
             <div>{`♥ ${post.PostLikes.length}`}</div>
+            <div>{post.postAuthor}</div>
             </div>
           </>
         ))}
