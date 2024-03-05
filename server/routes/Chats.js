@@ -63,9 +63,9 @@ router.post('/', validateToken, async (req, res) => {
                 'senderId': user1Id,
                 'date': formattedDate,
                 'receiverId': user2Id,
-                'senderLeft': false,
+                'senderDeleted': false,
                 'senderNickname': user1Nickname,
-                'receiverLeft': false,
+                'receiverDeleted': false,
                 'receiverNickname': user2Nickname,
                 'msgContent': chatMsg,
                 'isRead': false,
@@ -85,6 +85,7 @@ router.post('/', validateToken, async (req, res) => {
     dynamodb.query(params, queryCallback);
 });
 
+// 모든 쪽지 조회
 router.get('/', validateToken, async (req, res) => {
     let school = req.user.school;
     let userId = req.user.id;
@@ -92,10 +93,10 @@ router.get('/', validateToken, async (req, res) => {
     const params = {
         TableName: 'Chat',
         KeyConditionExpression: 'school = :school',
-        FilterExpression: 'uid1 = :uid OR uid2 = :uid',
+        FilterExpression: 'senderId = :userId OR receiverId = :userId',
         ExpressionAttributeValues: {
             ':school': school,
-            ':uid': userId
+            ':userId': userId
         }
     };
 
@@ -110,6 +111,60 @@ router.get('/', validateToken, async (req, res) => {
 
 });
 
+
+// 보낸사람으로 조회
+router.get('/bySender', validateToken, async (req, res) => {
+    let school = req.user.school;
+    let userId = req.user.id;
+
+    const params = {
+        TableName: 'Chat',
+        KeyConditionExpression: 'school = :school',
+        FilterExpression: 'senderId = :userId',
+        ExpressionAttributeValues: {
+            ':school': school,
+            ':userId': userId
+        }
+    };
+
+    dynamodb.query(params, (err, data) => {
+        if (err) {
+            console.error('Unable to query the table:', err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            res.json(data.Items);
+        }
+    });
+
+});
+
+// 받는사람으로 조회
+router.get('/byReceiver', validateToken, async (req, res) => {
+    let school = req.user.school;
+    let userId = req.user.id;
+
+    const params = {
+        TableName: 'Chat',
+        KeyConditionExpression: 'school = :school',
+        FilterExpression: 'receiverId = :userId',
+        ExpressionAttributeValues: {
+            ':school': school,
+            ':userId': userId
+        }
+    };
+
+    dynamodb.query(params, (err, data) => {
+        if (err) {
+            console.error('Unable to query the table:', err);
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            res.json(data.Items);
+        }
+    });
+
+});
+
+// 읽은 쪽지 읽음표시
 router.get('/:params', validateToken, async (req, res) => {
     const { chatId } = JSON.parse(req.params.params); // Decode parameters
     let school = req.user.school;
@@ -157,6 +212,8 @@ router.get('/:params', validateToken, async (req, res) => {
 
 });
 
+
+// 쪽지 삭제
 router.delete('/:params', validateToken, async (req, res) => {
     const { chatId } = JSON.parse(req.params.params); // Decode parameters
     let school = req.user.school;
@@ -164,11 +221,12 @@ router.delete('/:params', validateToken, async (req, res) => {
 
     const params = {
         TableName: 'Chat',
-        KeyConditionExpression: 'school = :school',
+        KeyConditionExpression: 'school = :school AND chatId = :chatId',
         FilterExpression: 'receiverId = :userId OR senderId = :userId',
         ExpressionAttributeValues: {
             ':school': school,
-            ':userId': userId
+            ':userId': userId,
+            ':chatId': chatId
         }
     };
 
@@ -177,29 +235,55 @@ router.delete('/:params', validateToken, async (req, res) => {
             console.error('Unable to query the table:', err);
             res.status(500).json({ error: 'Internal Server Error' });
         } else {
-            console.log(data[0]);
-            // const params2 = {
-            //     TableName: 'Chat',
-            //     Key: {
-            //         'school': school,
-            //         'chatId': chatId
-            //     },
-            //     UpdateExpression: 'SET isRead = :isRead',
-            //     ExpressionAttributeValues: {
-            //         ':isRead': true
-            //     },
-            //     ReturnValues: 'ALL_NEW'
-                
-            // };
+            
+            if (userId === data.Items[0].senderId) {
+                const params2 = {
+                    TableName: 'Chat',
+                    Key: {
+                        'school': school,
+                        'chatId': chatId
+                    },
+                    UpdateExpression: 'SET senderDeleted = :senderDeleted',
+                    ExpressionAttributeValues: {
+                        ':senderDeleted': true
+                    },
+                    ReturnValues: 'ALL_NEW'
+                    
+                };
 
-            // dynamodb.update(params2, (err, data) => {
-            //     if (err) {
-            //         console.error('Error updating post:', err);
-            //         res.status(500).json({ error: 'Error updating post.' });
-            //     } else {
-            //         res.json({ message: 'Read updated successfully.' });
-            //     }
-            // });
+                dynamodb.update(params2, (err, data) => {
+                    if (err) {
+                        console.error('Error updating post:', err);
+                        res.status(500).json({ error: 'Error updating post.' });
+                    } else {
+                        res.json({ message: 'Deleted updated successfully.' });
+                    }
+                });
+
+            } else {
+                const params3 = {
+                    TableName: 'Chat',
+                    Key: {
+                        'school': school,
+                        'chatId': chatId
+                    },
+                    UpdateExpression: 'SET receiverDeleted = :receiverDeleted',
+                    ExpressionAttributeValues: {
+                        ':receiverDeleted': true
+                    },
+                    ReturnValues: 'ALL_NEW'
+                    
+                };
+
+                dynamodb.update(params3, (err, data) => {
+                    if (err) {
+                        console.error('Error updating post:', err);
+                        res.status(500).json({ error: 'Error updating post.' });
+                    } else {
+                        res.json({ message: 'Deleted updated successfully.' });
+                    }
+                });
+            }
 
         }
     });
