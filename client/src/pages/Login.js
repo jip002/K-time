@@ -36,13 +36,6 @@ export const Login = () => {
                       console.log(res.data);
                       setProfile(res.data);
                       sendToServer(res.data, schoolList);
-                        navigate('/login', {
-                            state: {
-                                name: res.data.name,
-                                email: res.data.email,
-                                // picture: res.data.picture
-                            }
-                        });
                   })
                   .catch((err) => console.log(err));
           }
@@ -68,8 +61,20 @@ export const Login = () => {
         school: school
     };
     axios.post('http://localhost:3001/auth/glogin', userData)
-        .then(response => {
-            console.log('User info sent to server:', response.data);
+        .then(res => {
+            console.log('User info sent to server:', res.data);
+            if(res.data.error) alert(res.data.error);
+            else {
+              sessionStorage.setItem("accessToken", res.data.token);
+              axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+              setAuthState({
+                  id: res.data.id,
+                  school: res.data.school,
+                  email: res.data.email,
+                  status: true
+              });
+            }
+            navigate('/forum');
         })
         .catch(error => {
             console.error('Error sending user info:', error);
@@ -88,6 +93,7 @@ export const Login = () => {
           if(res.data.error) alert(res.data.error);
           else {
             sessionStorage.setItem("accessToken", res.data.token);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
             setAuthState({
                 nickname: res.data.nickname,
                 id: res.data.id,
@@ -97,7 +103,7 @@ export const Login = () => {
             });
           }
           console.log(res.data);
-          navigate('/login');
+          navigate('/forum');
         });
     };
 
@@ -133,11 +139,11 @@ export const Login = () => {
                 <button type='submit'>Login</button>
             </Form>
         </Formik>
-
-       <h2>React Google Login</h2>
+        <AuthContext.Provider value={{authState, setAuthState}}>
+        <h2>React Google Login</h2>
             <br />
             <br />
-            {profile ? (
+            {authState.status ? (
                 <div>
                     <img src={profile.picture} alt="user image" />
                     <h3>User Logged in</h3>
@@ -150,6 +156,7 @@ export const Login = () => {
             ) : (
                 <button onClick={() => login()}>Sign in with Google 🚀 </button>
             )} 
+        </AuthContext.Provider>
     </div>
   );
 }

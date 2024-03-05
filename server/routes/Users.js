@@ -44,7 +44,14 @@ router.post('/', async (req, res) => {
                             res.status(500).json({ error: 'Internal Server Error' });
                         } else {
                             console.log('Item added successfully:', putData);
-                            res.json({ success: true });
+                            const accessToken = sign({nickname: nickname, id: nextUid, school: school, email: email}, "secret");
+                            res.json({
+                                token: accessToken,
+                                nickname: nickname, 
+                                id: nextUid, 
+                                school: school, 
+                                email: email
+                            })
                         }
                     });
                 });
@@ -65,8 +72,6 @@ function getNextUidForSchool(school) {
                 ':school': school
             },
             ProjectionExpression: 'uid',
-            ScanIndexForward: false,
-            Limit: 1
         };
 
         dynamodb.query(params, (err, data) => {
@@ -78,7 +83,7 @@ function getNextUidForSchool(school) {
                     resolve(1);
                 } else {
                     // Get the highest uid and increment it by 1
-                    const highestUid = data.Items[0].uid;
+                    const highestUid = data.Items.length;
                     resolve(highestUid + 1);
                 }
             }
