@@ -24,7 +24,6 @@ export const Login = () => {
             sessionStorage.setItem("accessToken", res.data.token);
             setAuthState({nickname: res.data.nickname, id: res.data.id, status: true});
           }
-          console.log(res.data);
           navigate('/forum');
         });
     };

@@ -1,0 +1,57 @@
+.ChatBox {
+    font-family: Arial, sans-serif;
+    max-width: 1000px; /* or 100%, based on your layout needs */
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .ChatBox h1 {
+    color: #004175; /* Deeper navy for prominence */
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .chatBoxContainer {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Allows containers to wrap if the screen is too narrow */
+  }
+  
+  .sentBoxContainer, .inBoxContainer {
+    flex: 1;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 10px; /* Adjust as needed */
+    width: 48%; /* Ensures both containers can fit side by side */
+    max-width: calc(50% - 20px); /* Adjust for margins */
+  }
+  
+  .chatInfo {
+    background-color: #fff;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  
+  .chatContent {
+    font-weight: bold;
+  }
+  
+  .nickname, .chatTime {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 5px;
+  }
+  
+  .nickname {
+    color: #004175; /* Adds distinction */
+  }
+  
+  .chatTime {
+    font-size: 0.8rem; /* Smaller to differentiate from content and nickname */
+  }
+  
+  

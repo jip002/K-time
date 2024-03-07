@@ -36,7 +36,7 @@ router.get('/:id', async (req, res) => {
 
 router.delete('/:id', validateToken, async (req, res) => {
     const postId = req.params.id;
-    Post.destroy({
+    await Post.destroy({
         where: {
             id: postId
         }
