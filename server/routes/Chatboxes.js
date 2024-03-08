@@ -102,12 +102,29 @@ router.put('/received/delete/:id', validateToken, async (req, res) => {
     }
 });
 
-router.post('/', validateToken, async (req, res) => {
+router.post('/byEmail', validateToken, async (req, res) => {
     const receiver = await User.findOne({
         where: {
             email: req.body.receiverEmail
         }
     });
+    const chat = {
+        senderId: req.user.id,
+        senderNickname: req.user.nickname,
+        receiverId: receiver.id,
+        receiverNickname: receiver.nickname,
+        school: receiver.school,
+        msgContent: req.body.msgContent,
+        isRead: false,
+        senderDel: false,
+        receiverDel: false
+    }
+    newChat = await Chatbox.create(chat);
+    res.json(newChat);
+});
+
+router.post('/:id', validateToken, async (req, res) => {
+    const receiver = await User.findByPk(req.params.id);
     const chat = {
         senderId: req.user.id,
         senderNickname: req.user.nickname,

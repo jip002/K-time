@@ -13,6 +13,10 @@ export const ChatBox = () => {
 
   const navigate = useNavigate();
 
+  const addToSentBox = (newChat) => {
+    setSentBox([...sentBox, newChat]);
+  };
+
   const openInfo = (chat,isSent) => {
     chat.isRead = true;
     setSelectedChat(chat);
@@ -81,7 +85,12 @@ export const ChatBox = () => {
   return (
     <div className="ChatBox">
       <h1>ChatBox</h1>
-      <ChatInfo open = {openChatInfo} onClose = {closeInfo} chat = {selectedChat} isSent = {isSent}/>
+      <ChatInfo 
+        open = {openChatInfo} 
+        onClose = {closeInfo} 
+        chat = {selectedChat} 
+        isSent = {isSent}
+        addToSentBox = {addToSentBox}/>
       <div className='chatBoxContainer'> {/* This should wrap both containers */}
         <div className="sentBoxContainer">
             <h2>Chats Sent</h2>

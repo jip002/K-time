@@ -58,7 +58,7 @@ export const Post = () => {
             text: newComment,
             PostId: id
         };
-        console.log(addedComment);
+        //console.log(addedComment);
         axios.post('http://localhost:3001/comments', addedComment, {headers: {
           accessToken: sessionStorage.getItem('accessToken')
         }}).then((res) => {
