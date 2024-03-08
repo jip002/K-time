@@ -51,8 +51,8 @@ function App() {
               <Link to='/' onClick={logout} >LOG OUT</Link>
               <Link to='/createpost'> CREATE A POST </Link><br/>
               <Link to='/forum'> FORUM </Link>
-              <Link to='/chatbox'> ChatBox </Link>
-              <Link to={`/profile/${authState.id}`}>My Profile</Link>
+              <Link to='/chatbox'> CHATBOX </Link>
+              <Link to={`/profile/${authState.id}`}>MY PROFILE</Link>
               </>
             }
           </div>

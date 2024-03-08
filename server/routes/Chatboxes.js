@@ -6,7 +6,8 @@ const { validateToken } = require('../middlewares/AuthMiddleware');
 router.get('/sent', validateToken, async (req, res) => {
     const sentChat = await Chatbox.findAll({
         where: {
-            senderId: req.user.id
+            senderId: req.user.id,
+            senderDel: false
         }
     });
     res.json(sentChat);
@@ -15,7 +16,8 @@ router.get('/sent', validateToken, async (req, res) => {
 router.get('/received', validateToken, async (req, res) => {
     const receivedChat = await Chatbox.findAll({
         where: {
-            receiverId: req.user.id
+            receiverId: req.user.id,
+            receiverDel: false
         }
     });
     res.json(receivedChat);
