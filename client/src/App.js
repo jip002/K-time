@@ -9,6 +9,7 @@ import { SignUp } from './pages/SignUp';
 import { Profile } from './pages/Profile';
 import { ChangePW } from './pages/ChangePW';
 import { ChatBox } from './pages/ChatBox';
+import Navbar from './components/Navbar';
 import './App.css';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -31,31 +32,11 @@ function App() {
     })
   }, []);
 
-  const logout = () => {
-    sessionStorage.removeItem('accessToken');
-    setAuthState({nickname: '', id: 0, status: false});
-  }
-
   return (
     <div className="App">
       <AuthContext.Provider value={{authState, setAuthState}}>
         <BrowserRouter>
-          <div className = 'navbar'>
-            <Link to='/'> HOME PAGE </Link><br/>
-            {!authState.status ? (
-              <>
-                <Link to='/login'> LOGIN </Link><br/>
-                <Link to='/signup'> SIGN UP </Link><br/>
-              </>
-            ) : <>
-              <Link to='/' onClick={logout} >LOG OUT</Link>
-              <Link to='/createpost'> CREATE A POST </Link><br/>
-              <Link to='/forum'> FORUM </Link>
-              <Link to='/chatbox'> CHATBOX </Link>
-              <Link to={`/profile/${authState.id}`}>MY PROFILE</Link>
-              </>
-            }
-          </div>
+        <Navbar />
           <Routes>
             <Route index element={<Home/>}></Route>
             <Route path='/login' element={<Login/>}></Route>

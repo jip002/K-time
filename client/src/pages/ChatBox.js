@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ChatInfo from '../components/ChatInfo';
+import InboxContainer from '../components/InboxContainer';
+import NewMessageForm from '../components/NewMessageForm';
+import SentBoxContainer from '../components/SentBoxContainer';
 import '../styles/ChatBox.css';
 
 export const ChatBox = () => {
@@ -14,7 +16,6 @@ export const ChatBox = () => {
   const [openChatInfo, setOpenChatInfo] = useState(false);
   const [writeMessage, setWriteMessage] = useState(false);
 
-  //const navigate = useNavigate();
   const sendMessage = () => {
     axios.post(`http://localhost:3001/chatboxes/byEmail`, {msgContent: newMessage, receiverEmail: receiverEmail}, {
         headers: {
@@ -108,60 +109,28 @@ export const ChatBox = () => {
         chat = {selectedChat} 
         isSent = {isSent}
         addToSentBox = {addToSentBox}/>
-      <div className='chatBoxContainer'> {/* This should wrap both containers */}
-        <div className="sentBoxContainer">
-            <h2>Chats Sent</h2>
-            <div className="sentBox">
-                {sentBox.map(chat => (
-                    <div key={chat.id} className="chatInfo" onClick = {() => openInfo(chat, true)}>
-                        <div className='chatContent'>{chat.msgContent}</div>
-                        <div className='nickname'>to. {chat.receiverNickname}</div>
-                        <div className='chatTime'>{chat.createdAt}</div>
-                        {chat.isRead
-                            ? <div className='isRead'>Read</div>
-                            : <div className='notRead'>Not Read</div>}
-                        <button onClick = {() => senderDelete(chat.id)}>x</button>
-                    </div>
-                ))}
-            </div>
-        </div>
-        <div className='inBoxContainer'>
-            <h2>Inboxes</h2>
-            <div className="inBox">
-                {inBox.map(chat => (
-                    <div key={chat.id} className="chatInfo" onClick = {() => openInfo(chat, false)}>
-                        <div className='chatContent'>{chat.msgContent}</div>
-                        <div className='nickname'>from. {chat.senderNickname}</div>
-                        <div className='chatTime'>{chat.createdAt}</div>
-                        <button onClick = {() => receiverDelete(chat.id)}>x</button>
-                    </div>
-                ))}
-            </div>
-        </div>
+      <div className='chatBoxContainer'>
+        <SentBoxContainer 
+            sentBox={sentBox}
+            openInfo={openInfo}
+            senderDelete={senderDelete}
+        />
+        <InboxContainer 
+            inBox={inBox}
+            openInfo={openInfo}
+            receiverDelete={receiverDelete}
+        />
       </div>
       {writeMessage && 
-      <div className='overlay'>
-        <div className='newMessageContainer'>
-            <label>Recever Email</label>
-            <input
-                type='text' 
-                value = {receiverEmail}
-                autoComplete='off' 
-                placeholder='example@gamil.com'
-                onChange={event => setReceiverEmail(event.target.value)}
-            />
-            <label>Message</label>
-            <input
-                type='text' 
-                value = {newMessage}
-                autoComplete='off' 
-                placeholder='write your message here..'
-                onChange={event => setNewMessage(event.target.value)}
-            />
-            <button onClick={sendMessage}>Send</button>
-            <button onClick={() => setWriteMessage(false)}>Cancel</button>
-        </div>
-      </div>}
+        <NewMessageForm
+            sendMessage={sendMessage}
+            setWriteMessage={setWriteMessage}
+            newMessage={newMessage}
+            setNewMessage={setNewMessage}
+            receiverEmail={receiverEmail}
+            setReceiverEmail={setReceiverEmail}
+        />
+      }
     </div>
   );  
 }

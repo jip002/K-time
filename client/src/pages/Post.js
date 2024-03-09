@@ -1,13 +1,14 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useState, useEffect, useContext } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
+import CommentsContainer from '../components/CommentsContainer';
+import NewComment from '../components/NewComment'; 
+import EditPostForm from '../components/EditPostForm';
+import PostContainer from '../components/PostContainer';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../helpers/AuthContext';
 import '../styles/Post.css';
 import axios from 'axios';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 
 export const Post = () => {
     let { id } = useParams()
@@ -35,7 +36,7 @@ export const Post = () => {
           setUserLiked(false);
         }
         else 
-          console.log(res.data) // error occured
+          console.log(res.data)
       })
     }
 
@@ -43,7 +44,6 @@ export const Post = () => {
       axios.delete(`http://localhost:3001/posts/${id}`, {headers: {
         accessToken: sessionStorage.getItem('accessToken')
       }}).then((res) => {
-        console.log(res.data);
         navigate('/forum');
       })
     }
@@ -58,7 +58,7 @@ export const Post = () => {
             text: newComment,
             PostId: id
         };
-        //console.log(addedComment);
+        
         axios.post('http://localhost:3001/comments', addedComment, {headers: {
           accessToken: sessionStorage.getItem('accessToken')
         }}).then((res) => {
@@ -66,7 +66,6 @@ export const Post = () => {
           else {
             addedComment.commenter = res.data.nickname;
             addedComment.id = res.data.commentId;
-            console.log(addedComment)
             setComments([...comments, addedComment]);
             setNewComment('');
           }
@@ -84,14 +83,9 @@ export const Post = () => {
     };
 
     useEffect(() => {
-      console.log("#")
-      console.log(authState.nickname);
-      console.log("#")
         axios.get(`http://localhost:3001/posts/${id}`)
         .then((response)=>{
           setPost(response.data);
-
-          console.log(response.data.postBody);
         });
 
         axios.get(`http://localhost:3001/comments/byPost/${id}`)
@@ -105,18 +99,9 @@ export const Post = () => {
   
         axios.get(`http://localhost:3001/postlikes/${id}`).then((res) => {
           setLikes(res.data);
-          console.log(res.data);
-          console.log(id);
         })
 
       }, []);
-    
-
-    const initialValues = {
-        postTitle: post.postTitle,
-        postBody: post.postBody,
-        postCategory: post.postCategory
-    }
 
     const onSubmit = (data) => {
         axios.put(`http://localhost:3001/posts/${id}`, data, {headers: {
@@ -127,79 +112,28 @@ export const Post = () => {
         })
     }
 
-    const validationSchema = Yup.object().shape({
-        postTitle: Yup.string().max(100).required('Title cannot be empty'),
-        postBody: Yup.string().required('Body text cannot be empty'),
-        postCategory: Yup.string().required('Category cannot be empty')
-    })
-
-
     return (
       <div className="PostPage">
         { !onEdit 
-          ? <div className='postContainer'>
-              <div>{post.postTitle}</div>
-              <div className = 'postBody'>{post.postBody}</div>
-              <div>{post.postCategory}</div>
-              <div>{post.postAuthor}</div>
-              {userLiked 
-              ? (<ThumbUpIcon className = 'userLiked' onClick = {likeAPost}/>)
-              : (<ThumbUpIcon className = 'userNotLiked' onClick = {likeAPost}/>)}
-              <div>{likes.length}</div>
-              {authState.nickname === post.postAuthor && 
-                <>
-                  <button onClick = {() => editPost(true)}>Edit</button>
-                  <button onClick = {() => {deletePost()}}>Delete Post</button>
-                </>
-              }
-            </div>
-          : <div className = 'editPostContainer'>
-              <Formik 
-                initialValues={initialValues} 
-                onSubmit = {onSubmit}
-                validationSchema = {validationSchema}
-              >
-                <Form className = 'formContainer'>
-                    <label>Title: </label><br/>
-                    <Field 
-                        id = 'inputCreatePost' 
-                        name='postTitle' 
-                    />
-                    <br/><ErrorMessage name ='postTitle'component = 'span'/><br/>
-                    <label>Body: </label><br/>
-                    <Field 
-                        as='textarea'
-                        id = 'inputCreatePost' 
-                        name='postBody' 
-                    />
-                    <br/><ErrorMessage name ='postBody'component = 'span'/><br/>
-                    <label>Category: </label><br/>
-                    <Field 
-                        id = 'inputCreatePost' 
-                        name='postCategory' 
-                    />
-                    <br/><ErrorMessage name ='postCategory'component = 'span'/><br/>
-                    <button type='submit'>Confirm</button>
-                </Form>
-              </Formik>
-              <button onClick = {() => editPost(false)}>cancel</button>
-            </div>
+          ? <PostContainer 
+                post={post} 
+                userLiked={userLiked} 
+                likeAPost={likeAPost} 
+                authState={authState} 
+                editPost={editPost} 
+                deletePost={deletePost} 
+            />
+          : <EditPostForm 
+                post = {post}
+                onSubmit={onSubmit} 
+            />
         }
 
-        <div className='commentsContainer'>
-            {comments.map((comment, key) => (
-            <div key = {key} className='commentForm'>
-                <div className="comment">
-                    {comment.text}
-                </div>
-                <div className="commenter">
-                    {comment.commenter}
-                </div>
-                {authState.nickname === comment.commenter && 
-                <button onClick={() => {deleteComment(comment.id)}}>X</button>}
-            </div>
-            ))}
-        </div>
+        <CommentsContainer 
+            comments={comments} 
+            authState={authState} 
+            deleteComment={deleteComment}
+        />
 
         <div className='newCommentContainer'>
             <input 
