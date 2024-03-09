@@ -174,10 +174,10 @@ router.post('/glogin', async (req, res) => {
 });
 
 // nickname 수정
-// TODO update changedNickname in token
 router.put('/nickname', validateToken, async (req, res) => {
     const user = req.user;
-    const { nickname } = req.body;
+    let { nickname, id } = req.body;
+    id = parseInt(id);
 
     const updateUserParams = {
         TableName: 'User',
@@ -202,7 +202,7 @@ router.put('/nickname', validateToken, async (req, res) => {
             FilterExpression: 'school = :school AND uid = :uid',
             ExpressionAttributeValues: {
                 ':school': user.school,
-                ':uid': user.id
+                ':uid': id
             }
         };
         
@@ -240,7 +240,7 @@ router.put('/nickname', validateToken, async (req, res) => {
             FilterExpression: 'school = :school AND uid = :uid',
             ExpressionAttributeValues: {
                 ':school': user.school,
-                ':uid': user.id
+                ':uid': id
             }
         };
 
@@ -278,7 +278,7 @@ router.put('/nickname', validateToken, async (req, res) => {
             FilterExpression: 'school = :school AND senderId = :uid',
             ExpressionAttributeValues: {
                 ':school': user.school,
-                ':uid': user.id
+                ':uid': id
             }
         };
 
@@ -316,7 +316,7 @@ router.put('/nickname', validateToken, async (req, res) => {
             FilterExpression: 'school = :school AND receiverId = :uid',
             ExpressionAttributeValues: {
                 ':school': user.school,
-                ':uid': user.id
+                ':uid': id
             }
         };
 
@@ -348,15 +348,14 @@ router.put('/nickname', validateToken, async (req, res) => {
         });
  
 
-        const accessToken = sign({nickname: nickname, id: user.uid, school: user.school, email: user.email},"secret");
+        const accessToken = sign({nickname: nickname, id: id, school: user.school, email: user.email},"secret");
         res.json({
             token: accessToken,
             nickname: nickname,
-            id: user.uid,
+            id: id,
             school: user.school,
             email: user.email
         });
-        // res.json({ success: true });
     } catch (error) {
         console.error("Error updating nickname:", error);
         res.status(500).json({ error: 'Unable to update nickname' });

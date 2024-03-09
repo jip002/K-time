@@ -44,12 +44,11 @@ export const Profile = () => {
         axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
         setAuthState({
             nickname: res.data.nickname,
-            id: res.data.id,
+            id: id,
             school: res.data.school,
             email: res.data.email,
             status: true
         });
-        setUserInfo({...userInfo, nickname: data});
         setChangeNickName(false);
       }
     )

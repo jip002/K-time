@@ -148,6 +148,7 @@ router.get('/sent', validateToken, async (req, res) => {
 
 // 받는사람으로 조회
 router.get('/received', validateToken, async (req, res) => {
+    console.log(req.user);
     let school = req.user.school;
     let userId = req.user.id;
 
