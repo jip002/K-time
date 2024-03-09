@@ -81,3 +81,22 @@
     animation: popEffect 0.15s ease-out; /* Apply the animation */
   }
   
+  .writeMsgBtn {
+    padding: 10px 20px;
+    background-color: #004175; /* Navy blue background for consistency with theme */
+    color: #ffffff; /* White text for contrast */
+    border: none;
+    border-radius: 5px; /* Rounded corners for a modern look */
+    cursor: pointer; /* Indicates the element is clickable */
+    font-size: 1rem; /* Appropriate text size for readability */
+    text-align: center; /* Ensures text is centered */
+    display: inline-block; /* Allows applying padding and margin */
+    margin: 20px 0; /* Adds some space around the button */
+    transition: background-color 0.3s ease-in-out, transform 0.2s; /* Smooth transition for hover effects */
+  }
+  
+  .writeMsgBtn:hover {
+    background-color: #002d4b; /* Darker shade of navy on hover for interaction feedback */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Adds a subtle shadow for depth */
+  }
+  

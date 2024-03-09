@@ -7,11 +7,27 @@ import '../styles/ChatBox.css';
 export const ChatBox = () => {
   const [sentBox, setSentBox] = useState([]);
   const [inBox, setInBox] = useState([]);
-  const [openChatInfo, setOpenChatInfo] = useState(false);
   const [selectedChat, setSelectedChat] = useState({});
+  const [newMessage, setNewMessage] = useState('');
+  const [receiverEmail, setReceiverEmail] = useState('');
   const [isSent, setIsSent] = useState(false);
+  const [openChatInfo, setOpenChatInfo] = useState(false);
+  const [writeMessage, setWriteMessage] = useState(false);
 
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
+  const sendMessage = () => {
+    axios.post(`http://localhost:3001/chatboxes/byEmail`, {msgContent: newMessage, receiverEmail: receiverEmail}, {
+        headers: {
+            accessToken: sessionStorage.getItem('accessToken')
+        }
+    }).then((res) => {
+        console.log(res.data);
+        setSentBox([...sentBox, res.data]);
+        setNewMessage('');
+        setReceiverEmail('');
+        setWriteMessage(false);
+    })
+  }
 
   const addToSentBox = (newChat) => {
     setSentBox([...sentBox, newChat]);
@@ -85,6 +101,7 @@ export const ChatBox = () => {
   return (
     <div className="ChatBox">
       <h1>ChatBox</h1>
+      <div className = 'writeMsgBtn' onClick={() => setWriteMessage(true)}>Write A Message</div>
       <ChatInfo 
         open = {openChatInfo} 
         onClose = {closeInfo} 
@@ -122,7 +139,29 @@ export const ChatBox = () => {
             </div>
         </div>
       </div>
-      <div>Write A Message</div>
+      {writeMessage && 
+      <div className='overlay'>
+        <div className='newMessageContainer'>
+            <label>Recever Email</label>
+            <input
+                type='text' 
+                value = {receiverEmail}
+                autoComplete='off' 
+                placeholder='example@gamil.com'
+                onChange={event => setReceiverEmail(event.target.value)}
+            />
+            <label>Message</label>
+            <input
+                type='text' 
+                value = {newMessage}
+                autoComplete='off' 
+                placeholder='write your message here..'
+                onChange={event => setNewMessage(event.target.value)}
+            />
+            <button onClick={sendMessage}>Send</button>
+            <button onClick={() => setWriteMessage(false)}>Cancel</button>
+        </div>
+      </div>}
     </div>
   );  
 }
