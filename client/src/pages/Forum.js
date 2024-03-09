@@ -30,6 +30,7 @@ export const Forum = () => {
             <div key={`${post.postCategory}-${post.pid}`} className="post" onClick={() => handleClick(post.postCategory, post.pid)} style={{ cursor: 'pointer' }}>
               {post.title}
               <div>{`♥ ${post.numLikes}`}</div>
+              <div>{post.author}</div>
             </div>
           ))}
         </div>

@@ -62,6 +62,7 @@ router.post('/', validateToken, async (req, res) => {
                     'nestedComment': [],
                     'numLikes': 0,
                     'uid': user.id,
+                    'school': user.school
                 },
             };
 
@@ -134,6 +135,7 @@ router.get('/byPost/:params', async (req, res) => {
 // NOTE need to pass in params (postCategory, commentId)
 // Deleting a comment (changing isDeleted value to true)
 // TODO need to check if req user and comment user matches
+// TODO delete from user table
 router.delete('/:params', async (req, res) => {
     const { category, id } = JSON.parse(req.params.params);
 

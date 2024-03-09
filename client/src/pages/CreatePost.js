@@ -17,8 +17,6 @@ export const CreatePost = () => {
         axios.post('http://localhost:3001/posts', data, {headers: {
             accessToken: sessionStorage.getItem('accessToken')
           }}).then((res) => {
-            console.log(res.data);
-            console.log('test');
             navigate('/forum');
         })
     }

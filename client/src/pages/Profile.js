@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../helpers/AuthContext';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import '../styles/Profile.css';
 
 export const Profile = () => {
   const navigate = useNavigate();
+  const {authState, setAuthState} = useContext(AuthContext);
   const { id } = useParams();
   const [userInfo, setUserInfo] = useState({});
   const [userPosts, setUserPosts] = useState([]);
@@ -16,7 +18,7 @@ export const Profile = () => {
     axios.get(`http://localhost:3001/auth/verify`).then((res) => {
         setUserInfo(res.data);
     });
-    axios.get(`http://localhost:3001/auth/createdPost`).then((res) => {
+    axios.get(`http://localhost:3001/posts/createdByUser`).then((res) => {
         setUserPosts(res.data);
     });
 
@@ -37,8 +39,16 @@ export const Profile = () => {
         accessToken: sessionStorage.getItem('accessToken')
       }
     }).then((res) => {
-        console.log(res.data);
-        setUserInfo({...userInfo, nickname: data});
+        setUserInfo({...userInfo, nickname: res.data.nickname});
+        sessionStorage.setItem("accessToken", res.data.token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+        setAuthState({
+            nickname: res.data.nickname,
+            id: id,
+            school: res.data.school,
+            email: res.data.email,
+            status: true
+        });
         setChangeNickName(false);
       }
     )

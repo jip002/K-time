@@ -1,0 +1,22 @@
+[
+    {
+      "id": 1,
+      "name": "ucsd",
+      "hd":"ucsd.edu"
+    },
+    {
+      "id": 2,
+      "name": "ucla",
+      "hd":"ucla.edu"
+    },
+    {
+        "id": 3,
+        "name": "ucb",
+        "hd":"ucb.edu"
+    },
+    {
+        "id": 4,
+        "name": "ucsb",
+        "hd":"ucsb.edu"
+    }
+]

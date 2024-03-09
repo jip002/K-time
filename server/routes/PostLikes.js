@@ -6,12 +6,15 @@ const { validateToken } = require('../middlewares/AuthMiddleware');
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-router.put('/', validateToken, async (req, res) => {
+router.put('/:params', validateToken, async (req, res) => {
+    const { postCategory, pid } = JSON.parse(req.params.params);
     const user = req.user;
     const uid = user.id;
     const email = user.email;
     const school = user.school;
-    const { postCategory, postId } = req.body;
+
+    console.log(postCategory);
+    console.log(pid);
 
     try {
         // Retrieve the item from the table
@@ -19,7 +22,7 @@ router.put('/', validateToken, async (req, res) => {
             TableName: 'Post',
             Key: {
                 'postCategory': postCategory,
-                'pid': postId
+                'pid': pid
             }
         };
         const { Item } = await dynamodb.get(getItemParams).promise();
@@ -50,7 +53,7 @@ router.put('/', validateToken, async (req, res) => {
             TableName: 'Post',
             Key: {
                 'postCategory': postCategory,
-                'pid': postId
+                'pid': pid
             },
             UpdateExpression: 'SET numLikes = :numLikes, likers = :likers',
             ExpressionAttributeValues: {
@@ -83,16 +86,16 @@ router.put('/', validateToken, async (req, res) => {
             }
 
             // Update interactions object with the new post information
-            let interactions = userData.Item.interactions;
+            let likedPost = userData.Item.likedPost;
 
             if (isLiked) {
-                interactions.likedPost[postCategory] = interactions.likedPost[postCategory].filter(item => item !== postId);
+                likedPost[postCategory] = likedPost[postCategory].filter(item => item !== pid);
             } else {
                 // Check if the postCategory key exists in likedPost
-                if (!interactions.likedPost[postCategory]) {
-                    interactions.likedPost[postCategory] = [];
+                if (!likedPost[postCategory]) {
+                    likedPost[postCategory] = [];
                 }
-                interactions.likedPost[postCategory].push(postId);
+                likedPost[postCategory].push(pid);
             }
 
             // Define params to update the User table with the modified interactions
@@ -102,9 +105,9 @@ router.put('/', validateToken, async (req, res) => {
                     'school': school,
                     'email': email
                 },
-                UpdateExpression: 'SET interactions = :interactions',
+                UpdateExpression: 'SET likedPost = :likedPost',
                 ExpressionAttributeValues: {
-                    ':interactions': interactions
+                    ':likedPost': likedPost
                 },
                 ReturnValues: 'ALL_NEW'
             };
@@ -123,7 +126,11 @@ router.put('/', validateToken, async (req, res) => {
         dynamodb.get(userParams, userQueryCallback);
 
         // Return success message
-        res.json(isLiked ? 'Unlike Success' : 'Like Success');
+        res.json({
+            message: isLiked ? 'Unlike Success' : 'Like Success',
+            isliked: isLiked,
+            uid: uid
+          });
     } catch (error) {
         console.error('Error updating likes:', error);
         res.status(500).json({ error: 'Error updating likes' });

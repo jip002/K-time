@@ -3,11 +3,14 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import * as Yup from 'yup';
+import { useContext } from 'react';
+import { AuthContext } from '../helpers/AuthContext';
 import '../styles/SignUp.css';
 
 export const SignUp = () => {
 
     const navigate = useNavigate();
+    const { authState, setAuthState } = useContext(AuthContext);
 
     const initialValues = {
         nickname: '',
@@ -19,6 +22,19 @@ export const SignUp = () => {
     const onSubmit = (data) => {
         axios.post('http://localhost:3001/auth', data).then((res) => {
             console.log("Signed up!");
+            if(res.data.error) alert(res.data.error);
+            else {
+              sessionStorage.setItem("accessToken", res.data.token);
+              axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+              setAuthState({
+                  nickname: res.data.nickname,
+                  id: res.data.id,
+                  school: res.data.school,
+                  email: res.data.email,
+                  status: true
+              });
+            }
+            console.log(res.data);
             navigate('/forum');
         });
     };
