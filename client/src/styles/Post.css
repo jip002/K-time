@@ -1,101 +1,112 @@
-/* Overall page styling */
 .PostPage {
-    font-family: Arial, sans-serif;
-    background-color: #f0f8ff; /* Light azure background */
-    padding: 20px;
-    min-height: 100vh;
-  }
-  
-  /* Styling for the post container */
-  .postContainer {
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px; /* Space between post container and comments */
-  }
-  
-  .postContainer > div {
-    margin-bottom: 10px;
-  }
-  
-  /* Post title styling */
-  .postContainer > div:first-child {
-    font-size: 24px;
-    font-weight: bold;
-    color: #003366; /* Navy blue */
-  }
-  
-  /* Post body styling */
-  .postContainer > div:nth-child(2) {
-    font-size: 18px;
-    color: #004175;
-  }
-  
-  /* Post category, author, numLikes styling */
-  .postContainer > div:nth-child(3),
-  .postContainer > div:nth-child(4),
-  .postContainer > div:nth-child(5) {
-    font-size: 14px;
-    color: #007bff;
-  }
-  
-  /* Comments container styling */
-  .commentsContainer {
-    max-width: 600px;
-    margin: auto;
-  }
-  
-  .commentForm {
-    background-color: #eef2f7;
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 10px; /* Space between comments */
-  }
-  
-  /* Comment text styling */
-  .comment {
-    font-size: 16px;
-    margin-bottom: 5px;
-  }
-  
-  /* Commenter styling */
-  .commenter {
-    font-size: 14px;
-    color: #555;
-  }
-  
-  /* New comment input container */
-  .newCommentContainer {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  
-  .newCommentContainer input {
-    flex-grow: 1;
-    padding: 10px;
-    border-radius: 5px;
-    border: 2px solid #007bff;
-  }
-  
-  .newCommentContainer button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .newCommentContainer button:hover {
-    background-color: #0056b3;
-  }
-  
-  .postBody {
-    font-size: 18px;
-    color: #004175;
-    min-width: 300px; /* Minimum width */
-    min-height: 150px; /* Minimum height */
-  }
+  font-family: Arial, sans-serif;
+  background-color: #f0f8ff; /* Light azure background */
+  padding: 20px;
+  min-height: 100vh;
+}
+
+/* Styling for the post container */
+.postContainer {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px; /* Space between post container and comments */
+}
+
+.postContainer > div {
+  margin-bottom: 10px;
+}
+
+/* Post title styling */
+.postContainer > div:first-child {
+  font-size: 24px;
+  font-weight: bold;
+  color: #003366; /* Navy blue */
+}
+
+/* Post body styling */
+.postContainer > div:nth-child(2) {
+  font-size: 18px;
+  color: #004175;
+}
+
+/* Post category, author, numLikes styling */
+.postContainer > div:nth-child(3),
+.postContainer > div:nth-child(4),
+.postContainer > div:nth-child(5) {
+  font-size: 14px;
+  color: #007bff;
+}
+
+/* Comments container styling */
+.commentsContainer {
+  max-width: 600px;
+  margin: auto;
+}
+
+.commentForm {
+  background-color: #eef2f7;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 10px; /* Space between comments */
+}
+
+/* Comment text styling */
+.comment {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+/* Commenter styling */
+.commenter {
+  font-size: 14px;
+  color: #555;
+}
+
+/* New comment input container */
+.newCommentContainer {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.newCommentContainer input {
+  flex-grow: 1;
+  padding: 10px;
+  border-radius: 5px;
+  border: 2px solid #007bff;
+}
+
+.newCommentContainer button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.newCommentContainer button:hover {
+  background-color: #0056b3;
+}
+
+.postBody {
+  font-size: 18px;
+  color: #004175;
+  min-width: 300px; /* Minimum width */
+  min-height: 150px; /* Minimum height */
+}
+
+.userLiked {
+  color: blue; /* Change to your preferred shade of blue */
+  cursor: pointer; 
+}
+
+/* Style for when a user has not liked a post */
+.userNotLiked {
+  color: gray; /* Adjust transparency and shade as needed */
+  opacity: 0.5; /* Makes the icon semi-transparent */
+  cursor: pointer; 
+}

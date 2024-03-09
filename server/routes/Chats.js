@@ -10,9 +10,17 @@ router.post('/', validateToken, async (req, res) => {
     let school = req.user.school;
     let user1Id = req.user.id;
     let user1Nickname = req.user.nickname;
-    let user2Id = req.body.user2Id;
-    let user2Nickname = req.body.user2Nickname;
-    let chatMsg = req.body.chatMsg;
+    let receiverEmail = req.body.receiverEmail;
+    // let user2Id = req.body.user2Id;
+    // let user2Nickname = req.body.user2Nickname;
+    let msgContent = req.body.msgContent;
+
+    // TODO
+    // Get receiver id and nickname with email first
+    let receiverId = req.body.receiverId;
+    let receiverNickname = req.body.receiverNickname;
+
+    console.log(receiverId);
 
     // Getting the date value
     const date = new Date();
@@ -62,12 +70,12 @@ router.post('/', validateToken, async (req, res) => {
     
                 'senderId': user1Id,
                 'date': formattedDate,
-                'receiverId': user2Id,
+                'receiverId': receiverId,
                 'senderDeleted': false,
                 'senderNickname': user1Nickname,
                 'receiverDeleted': false,
-                'receiverNickname': user2Nickname,
-                'msgContent': chatMsg,
+                'receiverNickname': receiverNickname,
+                'msgContent': msgContent,
                 'isRead': false,
             },
         };
@@ -113,7 +121,7 @@ router.get('/', validateToken, async (req, res) => {
 
 
 // 보낸사람으로 조회
-router.get('/bySender', validateToken, async (req, res) => {
+router.get('/sent', validateToken, async (req, res) => {
     let school = req.user.school;
     let userId = req.user.id;
 
@@ -139,7 +147,7 @@ router.get('/bySender', validateToken, async (req, res) => {
 });
 
 // 받는사람으로 조회
-router.get('/byReceiver', validateToken, async (req, res) => {
+router.get('/received', validateToken, async (req, res) => {
     let school = req.user.school;
     let userId = req.user.id;
 
@@ -214,6 +222,7 @@ router.get('/:params', validateToken, async (req, res) => {
 
 
 // 쪽지 삭제
+// TODO 보낸 쪽지 삭제 / 받은 쪽지 삭제 나누기
 router.delete('/:params', validateToken, async (req, res) => {
     const { chatId } = JSON.parse(req.params.params); // Decode parameters
     let school = req.user.school;

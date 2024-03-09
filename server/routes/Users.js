@@ -44,14 +44,15 @@ router.post('/', async (req, res) => {
                             res.status(500).json({ error: 'Internal Server Error' });
                         } else {
                             console.log('Item added successfully:', putData);
-                            const accessToken = sign({nickname: nickname, id: nextUid, school: school, email: email}, "secret");
+                            const accessToken = sign({nickname: nickname, id: nextUid, school: school, email: email},"secret");
+                            // console.log('login');
                             res.json({
                                 token: accessToken,
-                                nickname: nickname, 
-                                id: nextUid, 
-                                school: school, 
+                                nickname: nickname,
+                                id: nextUid,
+                                school: school,
                                 email: email
-                            })
+                            });
                         }
                     });
                 });
@@ -71,7 +72,7 @@ function getNextUidForSchool(school) {
             ExpressionAttributeValues: {
                 ':school': school
             },
-            ProjectionExpression: 'uid',
+            ProjectionExpression: 'uid'
         };
 
         dynamodb.query(params, (err, data) => {
@@ -82,6 +83,7 @@ function getNextUidForSchool(school) {
                     // If no user found for the school, start from 1
                     resolve(1);
                 } else {
+                    console.log(data);
                     // Get the highest uid and increment it by 1
                     const highestUid = data.Items.length;
                     resolve(highestUid + 1);
@@ -122,7 +124,6 @@ router.post('/login', async (req, res) => {
             if(!match) res.json({error: "Wrong Email and Password Combination"});
     
             const accessToken = sign({nickname: user.nickname, id: user.uid, school: user.school, email: user.email},"secret");
-            // console.log('login');
             res.json({
                 token: accessToken,
                 nickname: user.nickname,
@@ -173,14 +174,12 @@ router.post('/glogin', async (req, res) => {
 });
 
 // nickname 수정
-// TODO update stored nicknames
 // TODO update changedNickname in token
-router.put('/nickname', validateToken, (req, res) => {
+router.put('/nickname', validateToken, async (req, res) => {
     const user = req.user;
-    const { id, nickname } = req.body;
-    console.log(id);
+    const { nickname } = req.body;
 
-    const params = {
+    const updateUserParams = {
         TableName: 'User',
         Key: {
             'school': user.school,
@@ -193,16 +192,167 @@ router.put('/nickname', validateToken, (req, res) => {
         ReturnValues: 'ALL_NEW' // Optional parameter to return the updated item
     };
 
-    // Update the item in the database
-    dynamodb.update(params, (err, data) => {
-        if (err) {
-            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
-            res.status(500).json({ error: 'Unable to update nickname' });
-        } else {
-            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
-            res.json({ success: true });
-        }
-    });
+    try {
+        await dynamodb.update(updateUserParams).promise();
+
+
+        // Update nickname in the Post table
+        const postParams = {
+            TableName: 'Post',
+            FilterExpression: 'school = :school AND uid = :uid',
+            ExpressionAttributeValues: {
+                ':school': user.school,
+                ':uid': user.id
+            }
+        };
+        
+        dynamodb.scan(postParams, async (err, data) => {
+            if (err) {
+                console.error("Unable to scan Post table. Error JSON:", JSON.stringify(err, null, 2));
+                res.status(500).json({ error: 'Unable to update posts' });
+            } else {
+                try {
+                    for (const post of data.Items) {
+                        const updateParams = {
+                            TableName: 'Post',
+                            Key: {
+                                'postCategory': post.postCategory,
+                                'pid': post.pid // Assuming 'pid' is the sort key
+                            },
+                            UpdateExpression: 'SET author = :newNickname',
+                            ExpressionAttributeValues: {
+                                ':newNickname': nickname
+                            }
+                        };
+                        await dynamodb.update(updateParams).promise();
+                    }
+                } catch (error) {
+                    console.error("Error updating posts:", error);
+                    res.status(500).json({ error: 'Unable to update posts' });
+                }
+            }
+        });
+        
+
+        // Update nickname in the Comment table
+        const commentParams = {
+            TableName: 'Comment',
+            FilterExpression: 'school = :school AND uid = :uid',
+            ExpressionAttributeValues: {
+                ':school': user.school,
+                ':uid': user.id
+            }
+        };
+
+        dynamodb.scan(commentParams, async (err, data) => {
+            if (err) {
+                console.error("Unable to scan Comment table. Error JSON:", JSON.stringify(err, null, 2));
+                res.status(500).json({ error: 'Unable to update comments' });
+            } else {
+                try {
+                    for (const comment of data.Items) {
+                        const updateParams = {
+                            TableName: 'Comment',
+                            Key: {
+                                'postCategory': comment.postCategory,
+                                'commentId': comment.commentId // Assuming 'pid' is the sort key
+                            },
+                            UpdateExpression: 'SET nickname = :newNickname',
+                            ExpressionAttributeValues: {
+                                ':newNickname': nickname
+                            }
+                        };
+                        await dynamodb.update(updateParams).promise();
+                    }
+                } catch (error) {
+                    console.error("Error updating comments:", error);
+                    res.status(500).json({ error: 'Unable to update comments' });
+                }
+            }
+        });
+
+
+        // Update nickname in the Chat table (sender)
+        const chatParams = {
+            TableName: 'Chat',
+            FilterExpression: 'school = :school AND senderId = :uid',
+            ExpressionAttributeValues: {
+                ':school': user.school,
+                ':uid': user.id
+            }
+        };
+
+        dynamodb.scan(chatParams, async (err, data) => {
+            if (err) {
+                console.error("Unable to scan Chat table. Error JSON:", JSON.stringify(err, null, 2));
+                res.status(500).json({ error: 'Unable to update chat' });
+            } else {
+                try {
+                    for (const chat of data.Items) {
+                        const updateParams = {
+                            TableName: 'Chat',
+                            Key: {
+                                'school': chat.school,
+                                'chatId': chat.chatId // Assuming 'pid' is the sort key
+                            },
+                            UpdateExpression: 'SET senderNickname = :newNickname',
+                            ExpressionAttributeValues: {
+                                ':newNickname': nickname
+                            }
+                        };
+                        await dynamodb.update(updateParams).promise();
+                    }
+                } catch (error) {
+                    console.error("Error updating chat:", error);
+                    res.status(500).json({ error: 'Unable to update chat' });
+                }
+            }
+        });
+
+
+        // Update nickname in the Chat table (receiver)
+        const chatParams2 = {
+            TableName: 'Chat',
+            FilterExpression: 'school = :school AND receiverId = :uid',
+            ExpressionAttributeValues: {
+                ':school': user.school,
+                ':uid': user.id
+            }
+        };
+
+        dynamodb.scan(chatParams, async (err, data) => {
+            if (err) {
+                console.error("Unable to scan Chat table. Error JSON:", JSON.stringify(err, null, 2));
+                res.status(500).json({ error: 'Unable to update chat' });
+            } else {
+                try {
+                    for (const chat of data.Items) {
+                        const updateParams = {
+                            TableName: 'Chat',
+                            Key: {
+                                'school': chat.school,
+                                'chatId': chat.chatId // Assuming 'pid' is the sort key
+                            },
+                            UpdateExpression: 'SET receiverNickname = :newNickname',
+                            ExpressionAttributeValues: {
+                                ':newNickname': nickname
+                            }
+                        };
+                        await dynamodb.update(updateParams).promise();
+                    }
+                } catch (error) {
+                    console.error("Error updating chat:", error);
+                    res.status(500).json({ error: 'Unable to update chat' });
+                }
+            }
+        });
+ 
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error updating nickname:", error);
+        res.status(500).json({ error: 'Unable to update nickname' });
+    }
 });
 
 

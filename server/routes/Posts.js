@@ -211,6 +211,7 @@ router.get('/byCategory/:postCategory', validateToken, async (req, res) => {
 
 
 // Deleting a post (changing isDeleted value to true)
+// TODO delete from user table
 router.delete('/:params', validateToken, async (req, res) => {
     const { postCategory, pid } = JSON.parse(req.params.params);
     const user = req.user;
@@ -284,7 +285,7 @@ router.put('/:params', validateToken, async (req, res) => {
             console.error('Error updating post:', err);
             res.status(500).json({ error: 'Error updating post.' });
         } else {
-            res.json({ message: 'Post updated successfully.' });
+            res.json(data.Attributes);
         }
     });
 });
