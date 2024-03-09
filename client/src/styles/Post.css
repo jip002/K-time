@@ -1,113 +1,141 @@
 /* Overall page styling */
 .PostPage {
-    font-family: Arial, sans-serif;
-    background-color: #f0f8ff; /* Light azure background */
-    padding: 20px;
-    min-height: 100vh;
-  }
-  
-  /* Styling for the post container */
-  .postContainer {
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px; /* Space between post container and comments */
-  }
-  
-  .postContainer > div {
-    margin-bottom: 10px;
-  }
-  
-  /* Post title styling */
-  .postContainer > div:first-child {
-    font-size: 24px;
-    font-weight: bold;
-    color: #003366; /* Navy blue */
-  }
-  
-  /* Post body styling */
-  .postContainer > div:nth-child(2) {
-    font-size: 18px;
-    color: #004175;
-  }
-  
-  /* Post category, author, numLikes styling */
-  .postContainer > div:nth-child(3),
-  .postContainer > div:nth-child(4),
-  .postContainer > div:nth-child(5) {
-    font-size: 14px;
-    color: #007bff;
-  }
-  
-  /* Comments container styling */
-  .commentsContainer {
-    max-width: 600px;
-    margin: auto;
-  }
-  
-  .commentForm {
-    background-color: #eef2f7;
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 10px; /* Space between comments */
-  }
-  
-  /* Comment text styling */
-  .comment {
-    font-size: 16px;
-    margin-bottom: 5px;
-  }
-  
-  /* Commenter styling */
-  .commenter {
-    font-size: 14px;
-    color: #555;
-  }
-  
-  /* New comment input container */
-  .newCommentContainer {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-  }
-  
-  .newCommentContainer input {
-    flex-grow: 1;
-    padding: 10px;
-    border-radius: 5px;
-    border: 2px solid #007bff;
-  }
-  
-  .newCommentContainer button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .newCommentContainer button:hover {
-    background-color: #0056b3;
-  }
-  
-  .postBody {
-    font-size: 18px;
-    color: #004175;
-    min-width: 300px; /* Minimum width */
-    min-height: 150px; /* Minimum height */
-  }
+  font-family: Arial, sans-serif;
+  background-color: #f0f8ff; /* Light azure background */
+  padding: 20px;
+  min-height: 100vh;
+}
 
-  .userLiked {
-    color: blue; /* Change to your preferred shade of blue */
-    cursor: pointer; 
-  }
-  
-  /* Style for when a user has not liked a post */
-  .userNotLiked {
-    color: gray; /* Adjust transparency and shade as needed */
-    opacity: 0.5; /* Makes the icon semi-transparent */
-    cursor: pointer; 
-  }
+/* Styling for the post container */
+.postContainer {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-bottom: 20px; /* Space between post container and comments */
+}
+
+.postContainer > div {
+  margin-bottom: 10px;
+}
+
+/* Post title styling */
+.postContainer > div:first-child {
+  font-size: 24px;
+  font-weight: bold;
+  color: #003366; /* Navy blue */
+}
+
+/* Post body styling */
+.postContainer > div:nth-child(2) {
+  font-size: 18px;
+  color: #004175;
+}
+
+/* Post category, author, numLikes styling */
+.postContainer > div:nth-child(3),
+.postContainer > div:nth-child(4),
+.postContainer > div:nth-child(5) {
+  font-size: 14px;
+  color: #004175;
+}
+
+/* Comments container styling */
+.commentsContainer {
+  max-width: 800px;
+  margin: 20px auto;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.commentForm {
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  position: relative; /* Needed for absolute positioning */
+  margin-bottom: 15px;
+}
+
+.comment {
+    font-size: 16px;
+    color: #333;
+    margin-left: 10px; /* Ensures it starts 10px from the left */
+    width: calc(30% - 10px); /* Adjusted width */
+    text-align: left; /* Explicitly aligns text to the left */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.commenter {
+  font-size: 14px;
+  color: #004175;
+  font-weight: bold;
+  position: absolute;
+  left: 620px; /* Adjusted for direct positioning */
+}
+
+.commentForm > button {
+  position: absolute;
+  left: 750px; /* Positioning the delete button */
+  background-color: transparent;
+  color: #ff7b96;
+  border: solid rgb(193, 193, 193) 1px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.commentForm > button:hover {
+  color: #ff5f5f;
+}
+
+/* New comment input container */
+.newCommentContainer {
+  width: 800px;
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  margin-left: 400px;
+}
+
+.newCommentContainer input, .newCommentContainer button {
+  padding: 10px;
+  border-radius: 5px;
+  border: 2px solid #004175;
+}
+
+.newCommentField {
+  width: 500px;
+}
+
+.newCommentContainer button {
+  background-color: #004175;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.newCommentContainer button:hover {
+  background-color: #004175;
+}
+
+.postBody {
+  font-size: 18px;
+  color: #004175;
+  min-width: 300px;
+  min-height: 150px;
+}
+
+.userLiked, .userNotLiked {
+  cursor: pointer; 
+}
+
+.userNotLiked {
+  color: gray;
+  opacity: 0.5;
+}

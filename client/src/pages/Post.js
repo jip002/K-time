@@ -26,6 +26,7 @@ export const Post = () => {
         accessToken: sessionStorage.getItem('accessToken')
       }}).then((res) => {
         if(res.data.liked == true) { // like success
+          console.log('like success');
           setLikes([...likes, res.data.newLike])
           setUserLiked(true);
         }
@@ -122,6 +123,7 @@ export const Post = () => {
                 authState={authState} 
                 editPost={editPost} 
                 deletePost={deletePost} 
+                likes={likes}
             />
           : <EditPostForm 
                 post = {post}
@@ -142,6 +144,7 @@ export const Post = () => {
                 value = {newComment}
                 autoComplete='off' 
                 onChange={ (event) => { setNewComment(event.target.value) }}
+                className = 'newCommentField'
             />
             <button onClick = {addComment}>Add Comment</button>
         </div>

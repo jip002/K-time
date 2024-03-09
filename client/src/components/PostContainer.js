@@ -1,7 +1,7 @@
 import React from 'react';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 
-const PostContainer = ({ post, userLiked, likeAPost, authState, editPost, deletePost }) => {
+const PostContainer = ({ post, userLiked, likeAPost, authState, editPost, deletePost, likes }) => {
     return (
         <div className='postContainer'>
             <div>{post.postTitle}</div>
@@ -12,7 +12,7 @@ const PostContainer = ({ post, userLiked, likeAPost, authState, editPost, delete
                 ? (<ThumbUpIcon className='userLiked' onClick={likeAPost}/>)
                 : (<ThumbUpIcon className='userNotLiked' onClick={likeAPost}/>)
             }
-            <div>{post.likes?.length || 0}</div>
+            <div>{likes.length || 0}</div>
             {authState.nickname === post.postAuthor && 
                 <>
                     <button onClick={() => editPost(true)}>Edit</button>

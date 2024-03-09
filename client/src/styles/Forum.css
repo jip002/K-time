@@ -2,7 +2,7 @@
 .Forum {
     font-family: Arial, sans-serif;
     padding: 20px;
-    background-color: #f0f8ff; /* Light azure background for contrast */
+    background-color: #f9fcff; /* Light azure background for contrast */
     min-height: 100vh;
   }
   
@@ -12,31 +12,41 @@
   }
   
   /* Styling for the container of the post list */
-  .postListContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Space between posts */
-  }
-  
-  /* Styling for individual posts */
   .post {
-    background-color: #ffffff; /* White background for the posts */
-    border-left: 5px solid #ffed29;; /* Navy accent on the left */
+    background-color: #ffffff;
+    border-left: 5px solid #ffed29;
     padding: 10px 15px;
     cursor: pointer;
+    display: flex;
+    align-items: center; /* Align items vertically in the center */
     transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+    position: relative; /* Needed for absolute positioning of children */
   }
   
   .post:hover {
-    background-color: #eef2f7; /* Lighter shade on hover */
-    transform: translateX(5px); /* Slight move to the right on hover */
+    background-color: #eef2f7;
+    transform: translateX(5px);
   }
   
-  /* Ensures the titles are lined to the left */
-  .post {
-    text-align: left;
+  .postTitle {
     font-size: 16px;
-    color: #003366; /* Navy text for readability */
+    color: #003366;
     font-weight: bold;
+    width: 500px; /* Fixed width for title */
+    margin-left: 10px; /* Add 10px margin to the left */
+    text-align: left; /* Ensure text alignment is to the left */
+  }
+  
+  .postAuthor, .postLikes {
+    position: absolute; /* Position author and likes absolutely within the post */
+    white-space: nowrap; /* Prevent wrapping to ensure spacing */
+  }
+  
+  .postAuthor {
+    left: 500px; /* 700px from the left edge of the post */
+  }
+  
+  .postLikes {
+    left: 700px; /* 1100px from the left edge of the post */
   }
   

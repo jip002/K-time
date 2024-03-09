@@ -27,6 +27,7 @@ const CreatePostForm = ({ onSubmit }) => {
                     id='inputCreatePost' 
                     name='postTitle' 
                     placeholder='Put title here...'
+                    className = 'createTitle'
                 />
                 <ErrorMessage name='postTitle' component='span'/><br/>
                 
@@ -44,6 +45,7 @@ const CreatePostForm = ({ onSubmit }) => {
                     id='inputCreatePostCategory' 
                     name='postCategory' 
                     placeholder='Put category here...'
+                    className='createCategory'
                 />
                 <ErrorMessage name='postCategory' component='span'/><br/>
                 

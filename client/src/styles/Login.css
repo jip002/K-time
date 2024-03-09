@@ -35,27 +35,29 @@
   /* Input fields */
   .loginContainer Field {
     width: 100%;
-    padding: 12px 15px;
+    padding: 12px 0; /* Adjust padding to fit your design */
     margin: 8px 0 20px;
-    border: 2px solid #004175;
-    border-radius: 5px;
+    border: none; /* Remove default border */
+    border-bottom: 2px solid #004175; /* Underline effect */
     box-sizing: border-box;
+    outline: none; /* Removes the outline to keep focus style clean */
   }
   
   /* Submit Button */
   .loginContainer button {
-    background-color: #007bff; /* A vibrant shade for the button */
+    background-color: #004175; /* A vibrant shade for the button */
     color: #ffffff;
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 18px;
+    margin-top: 10px;
     transition: background-color 0.3s;
   }
   
   .loginContainer button:hover {
-    background-color: #0056b3; /* Darker shade on hover */
+    background-color: #2e597c; /* Darker shade on hover */
   }
   
   /* Error Message */

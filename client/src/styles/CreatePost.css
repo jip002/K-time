@@ -50,6 +50,7 @@
   /* Submit Button */
   .formContainer button {
     background-color: #004175; /* A vibrant shade for the button */
+    margin-top: 10px;
     color: #ffffff;
     padding: 10px 20px;
     border: none;
@@ -70,3 +71,11 @@
     font-size: 0.9em;
   }
   
+  .createTitle {
+    margin: 10px;
+    width: 350px;
+  }
+
+  .createCategory {
+    margin: 10px;
+  }

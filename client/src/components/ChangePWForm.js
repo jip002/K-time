@@ -25,6 +25,7 @@ const ChangePWForm = ({ onSubmit }) => {
                     id='oldpw'
                     name='oldPassword'
                     placeholder='Put your old password here...'
+                    className='changePWField'
                 />
                 <ErrorMessage name='oldPassword' component='span'/><br/>
 
@@ -33,6 +34,7 @@ const ChangePWForm = ({ onSubmit }) => {
                     id='newpw'
                     name='newPassword'
                     placeholder='Put your new password here...'
+                    className='changePWField'
                 />
                 <ErrorMessage name='newPassword' component='span'/><br/>
 
