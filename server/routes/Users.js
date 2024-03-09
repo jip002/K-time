@@ -320,7 +320,7 @@ router.put('/nickname', validateToken, async (req, res) => {
             }
         };
 
-        dynamodb.scan(chatParams, async (err, data) => {
+        dynamodb.scan(chatParams2, async (err, data) => {
             if (err) {
                 console.error("Unable to scan Chat table. Error JSON:", JSON.stringify(err, null, 2));
                 res.status(500).json({ error: 'Unable to update chat' });
@@ -348,7 +348,15 @@ router.put('/nickname', validateToken, async (req, res) => {
         });
  
 
-        res.json({ success: true });
+        const accessToken = sign({nickname: nickname, id: user.uid, school: user.school, email: user.email},"secret");
+        res.json({
+            token: accessToken,
+            nickname: nickname,
+            id: user.uid,
+            school: user.school,
+            email: user.email
+        });
+        // res.json({ success: true });
     } catch (error) {
         console.error("Error updating nickname:", error);
         res.status(500).json({ error: 'Unable to update nickname' });

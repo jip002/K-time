@@ -65,7 +65,6 @@ export const Post = () => {
         })
     };
 
-    // TODO need to test
     const deletePost = () => {
       const params = encodeURIComponent(JSON.stringify({ postCategory, pid }));
       axios.delete(`http://localhost:3001/posts/${params}`, {headers: {

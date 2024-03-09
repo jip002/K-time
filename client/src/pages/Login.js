@@ -103,7 +103,6 @@ export const Login = () => {
             });
             navigate('/forum');
           }
-          console.log(res.data);
         });
     };
 

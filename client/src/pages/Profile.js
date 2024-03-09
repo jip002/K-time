@@ -39,10 +39,16 @@ export const Profile = () => {
         accessToken: sessionStorage.getItem('accessToken')
       }
     }).then((res) => {
-        console.log(res.data);
         setUserInfo({...userInfo, nickname: res.data.nickname});
         sessionStorage.setItem("accessToken", res.data.token);
-        setAuthState({nickname: res.data.nickname, id: res.data.id, status: true});
+        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+        setAuthState({
+            nickname: res.data.nickname,
+            id: res.data.id,
+            school: res.data.school,
+            email: res.data.email,
+            status: true
+        });
         setUserInfo({...userInfo, nickname: data});
         setChangeNickName(false);
       }
