@@ -20,8 +20,6 @@ router.post('/', validateToken, async (req, res) => {
     let receiverId = req.body.receiverId;
     let receiverNickname = req.body.receiverNickname;
 
-    console.log(receiverId);
-
     // Getting the date value
     const date = new Date();
     const year = date.getFullYear();
@@ -93,31 +91,31 @@ router.post('/', validateToken, async (req, res) => {
     dynamodb.query(params, queryCallback);
 });
 
-// 모든 쪽지 조회
-router.get('/', validateToken, async (req, res) => {
-    let school = req.user.school;
-    let userId = req.user.id;
+// 모든 쪽지 조회 --> 이용 안해서 지움
+// router.get('/', validateToken, async (req, res) => {
+//     let school = req.user.school;
+//     let userId = req.user.id;
 
-    const params = {
-        TableName: 'Chat',
-        KeyConditionExpression: 'school = :school',
-        FilterExpression: 'senderId = :userId OR receiverId = :userId',
-        ExpressionAttributeValues: {
-            ':school': school,
-            ':userId': userId
-        }
-    };
+//     const params = {
+//         TableName: 'Chat',
+//         KeyConditionExpression: 'school = :school',
+//         FilterExpression: 'senderId = :userId OR receiverId = :userId',
+//         ExpressionAttributeValues: {
+//             ':school': school,
+//             ':userId': userId
+//         }
+//     };
 
-    dynamodb.query(params, (err, data) => {
-        if (err) {
-            console.error('Unable to query the table:', err);
-            res.status(500).json({ error: 'Internal Server Error' });
-        } else {
-            res.json(data.Items);
-        }
-    });
+//     dynamodb.query(params, (err, data) => {
+//         if (err) {
+//             console.error('Unable to query the table:', err);
+//             res.status(500).json({ error: 'Internal Server Error' });
+//         } else {
+//             res.json(data.Items);
+//         }
+//     });
 
-});
+// });
 
 
 // 보낸사람으로 조회
@@ -128,10 +126,11 @@ router.get('/sent', validateToken, async (req, res) => {
     const params = {
         TableName: 'Chat',
         KeyConditionExpression: 'school = :school',
-        FilterExpression: 'senderId = :userId',
+        FilterExpression: 'senderId = :userId AND senderDeleted = :deleted',
         ExpressionAttributeValues: {
             ':school': school,
-            ':userId': userId
+            ':userId': userId,
+            ':deleted': false
         }
     };
 
@@ -148,17 +147,17 @@ router.get('/sent', validateToken, async (req, res) => {
 
 // 받는사람으로 조회
 router.get('/received', validateToken, async (req, res) => {
-    console.log(req.user);
     let school = req.user.school;
     let userId = req.user.id;
 
     const params = {
         TableName: 'Chat',
         KeyConditionExpression: 'school = :school',
-        FilterExpression: 'receiverId = :userId',
+        FilterExpression: 'receiverId = :userId AND receiverDeleted = :deleted',
         ExpressionAttributeValues: {
             ':school': school,
-            ':userId': userId
+            ':userId': userId,
+            ':deleted': false
         }
     };
 
@@ -174,9 +173,10 @@ router.get('/received', validateToken, async (req, res) => {
 });
 
 // 읽은 쪽지 읽음표시
-router.get('/:params', validateToken, async (req, res) => {
-    const { chatId } = JSON.parse(req.params.params); // Decode parameters
+router.get('/:chatId', validateToken, (req, res) => {
+    const chatId = parseInt(req.params.chatId);
     let school = req.user.school;
+    console.log(chatId);
 
     const params = {
         TableName: 'Chat',
@@ -204,7 +204,6 @@ router.get('/:params', validateToken, async (req, res) => {
                     ':isRead': true
                 },
                 ReturnValues: 'ALL_NEW'
-                
             };
 
             dynamodb.update(params2, (err, data) => {
@@ -212,7 +211,7 @@ router.get('/:params', validateToken, async (req, res) => {
                     console.error('Error updating post:', err);
                     res.status(500).json({ error: 'Error updating post.' });
                 } else {
-                    res.json({ message: 'Read updated successfully.' });
+                    res.json(data);
                 }
             });
 
@@ -222,7 +221,65 @@ router.get('/:params', validateToken, async (req, res) => {
 });
 
 
-// 쪽지 삭제
+// 보낸 쪽지 삭제
+router.delete('/sent/:chatId', validateToken, (req, res) => {
+    const chatId = parseInt(req.params.chatId);
+    const school = req.user.school;
+
+    const params = {
+        TableName: 'Chat',
+        Key: {
+            'school': school,
+            'chatId': chatId
+        },
+        UpdateExpression: 'set senderDeleted = :deleted',
+        ExpressionAttributeValues: {
+            ':deleted': true
+        },
+        ReturnValues: 'ALL_NEW'
+    }
+
+    dynamodb.update(params, (err, data) => {
+        if (err) {
+            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+            res.json(data.Attributes);
+        }
+    });
+})
+
+// 받은 쪽지 삭제
+router.delete('/received/:chatId', validateToken, (req, res) => {
+    const chatId = parseInt(req.params.chatId);
+    const school = req.user.school;
+
+    const params = {
+        TableName: 'Chat',
+        Key: {
+            'school': school,
+            'chatId': chatId
+        },
+        UpdateExpression: 'set receiverDeleted = :deleted',
+        ExpressionAttributeValues: {
+            ':deleted': true
+        },
+        ReturnValues: 'ALL_NEW'
+    }
+
+    dynamodb.update(params, (err, data) => {
+        if (err) {
+            console.error("Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
+            res.status(500).json({ error: 'Internal Server Error' });
+        } else {
+            console.log("UpdateItem succeeded:", JSON.stringify(data, null, 2));
+            res.json(data.Attributes);
+        }
+    });
+})
+
+
 // TODO 보낸 쪽지 삭제 / 받은 쪽지 삭제 나누기
 router.delete('/:params', validateToken, async (req, res) => {
     const { chatId } = JSON.parse(req.params.params); // Decode parameters

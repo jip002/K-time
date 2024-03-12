@@ -36,12 +36,12 @@ export const ChatBox = () => {
   const openInfo = (chat,isSent) => {
     chat.isRead = true;
     setSelectedChat(chat);
+    console.log(!isSent);
     setIsSent(isSent);
+    console.log(!isSent);
     if (!isSent) { // if it's a received message, mark as read
         let chatId = chat.chatId;
-        // console.log(chatId);
-        const params = encodeURIComponent(JSON.stringify({ chatId }));
-        axios.get(`http://localhost:3001/chats/${params}`, {}, {
+        axios.get(`http://localhost:3001/chats/${chatId}`, {}, {
             headers: {
                 accessToken: sessionStorage.getItem('accessToken')
             }
@@ -51,7 +51,6 @@ export const ChatBox = () => {
                     return { ...item, isRead: true };
                 return item;
             }));
-            // console.log('marked as read')
         });
     }
     setOpenChatInfo(true);
@@ -120,10 +119,7 @@ export const ChatBox = () => {
                         <div className='chatContent'>{chat.msgContent}</div>
                         <div className='nickname'>to. {chat.receiverNickname}</div>
                         <div className='chatTime'>{chat.date}</div>
-                        {chat.isRead
-                            ? <div className='isRead'>Read</div>
-                            : <div className='notRead'>Not Read</div>}
-                        <button onClick = {() => senderDelete(chat.id)}>x</button>
+                        <button onClick = {() => senderDelete(chat.chatId)}>x</button>
                     </div>
                 ))}
             </div>
@@ -136,7 +132,10 @@ export const ChatBox = () => {
                         <div className='chatContent'>{chat.msgContent}</div>
                         <div className='nickname'>from. {chat.senderNickname}</div>
                         <div className='chatTime'>{chat.date}</div>
-                        <button onClick = {() => receiverDelete(chat.id)}>x</button>
+                        {chat.isRead
+                            ? <div className='isRead'>Read</div>
+                            : <div className='notRead'>Not Read</div>}
+                        <button onClick = {() => receiverDelete(chat.chatId)}>x</button>
                     </div>
                 ))}
             </div>

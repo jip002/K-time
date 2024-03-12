@@ -132,10 +132,7 @@ router.get('/byPost/:params', async (req, res) => {
 });
 
 
-// NOTE need to pass in params (postCategory, commentId)
 // Deleting a comment (changing isDeleted value to true)
-// TODO need to check if req user and comment user matches
-// TODO delete from user table
 router.delete('/:params', async (req, res) => {
     const { category, id } = JSON.parse(req.params.params);
 
@@ -223,34 +220,33 @@ router.put('/:params', async (req, res) => {
 });
 
 
-// Endpoint not checked yet
+// Posting a nested comment
+// TODO need to update nickname when user updates it
+// OR do not store nickname for nested comment and whenever get is called, add nickname to res.json?
+// OR store list of parentCommentId to the user table whenever nested comment is made --> only need to update those when nickname is updated
 router.post('/nested/:params', validateToken, async (req, res) => {
+    let { postCategory, parentCommentId } = JSON.parse(req.params.params);
     const nestedComment = req.body;
     const user = req.user;
 
+    parentCommentId = parseInt(parentCommentId);
+
     const params = {
-        TableName: 'nestedComment',
-        KeyConditionExpression: 'postCategory = :postCategory',
+        TableName: 'Comment',
+        KeyConditionExpression: 'postCategory = :postCategory AND commentId = :commentId',
         ExpressionAttributeValues: {
-            ':postCategory': nestedComment.postCategory
-        },
-        ProjectionExpression: 'nestedCommentId',
-        ScanIndexForward: false,
-        Limit: 1
+            ':postCategory': postCategory,
+            ':commentId': parentCommentId
+        }
     };
 
     dynamodb.query(params, (err, data) => {
-        const comment = data.body;
         if (err) {
             console.error('Unable to query table:', err);
             res.status(500).json({ error: 'Internal Server Error' });
         } else {
-            let nextNestedCommentId;
-            if (data.Items.length === 0) {
-                nextNestedCommentId = 0; // Start from 0 if no items found
-            } else {
-                nextNestedCommentId = data.Items[0].nextNestedCommentId + 1; // Increment the highest commentId by 1
-            }
+            let nextNestedCommentId = data.Items[0].nestedComment.length
+            // console.log(nextNestedCommentId);
 
             // Getting the date value
             const date = new Date();
@@ -263,16 +259,16 @@ router.post('/nested/:params', validateToken, async (req, res) => {
             const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
             const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}:${milliseconds}`;
 
-            let updatedNestedComment = data.Item.nestedComment;
+            let updatedNestedComment = data.Items[0].nestedComment;
             const nested = {
-                'body': comment.nestedComment.body,
+                'body': nestedComment,
                 'commenterId': user.id,
                 'date': formattedDate,
                 'isDeleted': false,
                 'isEdited': false,
                 'likers': [],
                 'nestedCommentId': nextNestedCommentId,
-                'nickname': comment.nestedComment.nickname,
+                'nickname': user.nickname,
                 'numLikes': 0,
             };
 
@@ -281,8 +277,8 @@ router.post('/nested/:params', validateToken, async (req, res) => {
             const updateNestedComment = {
                 TableName: 'Comment',
                 Key: {
-                    'postCategory': comment.postCategory,
-                    'commendId': comment.commendId,
+                    'postCategory': postCategory,
+                    'commentId': parentCommentId,
                 },
                 UpdateExpression: 'SET nestedComment = :nestedComment',
                 ExpressionAttributeValues: {
@@ -293,12 +289,13 @@ router.post('/nested/:params', validateToken, async (req, res) => {
 
             dynamodb.update(updateNestedComment, (err, data) => {
                 if (err) {
-                    console.error('Error updating User table:', err);
+                    console.error('Error updating Comment table:', err);
                     res.status(500).json({ error: 'Error updating User table' });
                     return;
                 }
 
                 console.log('User table updated successfully:', data);
+                res.json({success: true});
             });
         }
     });
