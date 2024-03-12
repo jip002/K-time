@@ -176,7 +176,6 @@ router.get('/received', validateToken, async (req, res) => {
 router.get('/:chatId', validateToken, (req, res) => {
     const chatId = parseInt(req.params.chatId);
     let school = req.user.school;
-    console.log(chatId);
 
     const params = {
         TableName: 'Chat',

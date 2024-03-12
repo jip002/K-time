@@ -25,7 +25,6 @@ export const ChatBox = () => {
             accessToken: sessionStorage.getItem('accessToken')
         }
     }).then((res) => {
-        console.log(res.data);
         setSentBox([...sentBox, res.data]);
         setNewMessage('');
         setReceiverEmail('');
@@ -36,9 +35,7 @@ export const ChatBox = () => {
   const openInfo = (chat,isSent) => {
     chat.isRead = true;
     setSelectedChat(chat);
-    console.log(!isSent);
     setIsSent(isSent);
-    console.log(!isSent);
     if (!isSent) { // if it's a received message, mark as read
         let chatId = chat.chatId;
         axios.get(`http://localhost:3001/chats/${chatId}`, {}, {
@@ -67,7 +64,6 @@ export const ChatBox = () => {
             accessToken: sessionStorage.getItem('accessToken')
         }
     }).then((res) => {
-        console.log(res.data)
         setSentBox(sentBox.filter((chat) => {
             return chat.chatId != chatId;
         }))
@@ -78,7 +74,6 @@ export const ChatBox = () => {
     axios.delete(`http://localhost:3001/chats/received/${chatId}`, {}, {headers: {
         accessToken: sessionStorage.getItem('accessToken')
     }}).then((res) => {
-        console.log(res.data)
         setInBox(inBox.filter((chat) => {
             return chat.chatId != chatId;
         }))
